@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agro-Haat 2.0 | AI Smart Farming & Digital Agriculture Platform</title>
+    <!-- Google Fonts for High-End Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@1,500;1,600;1,700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Premium Stylesheet -->
+    <link rel="stylesheet" href="/css/style2.css?v=5">
+</head>
+<body>
+    <!-- FIXED FLOATING GLASSMORPHIC HEADER -->
+    <header id="mainNavbar">
+        <div class="container">
+            <nav class="navbar">
+                <!-- LOGO DOUBLES AS HOME BUTTON -->
+                <a href="#home" class="logo" title="Agro-Haat Home">
+                    <span class="logo-leaf-icon"><i class="fa-solid fa-leaf"></i></span>
+                    <span class="logo-text">AGRO<span>HAAT</span></span>
+                </a>
+
+                <!-- REFINED CLEAN NAV LINKS -->
+                <ul class="nav-links" id="navLinks">
+                    <li><a href="#features" class="active" data-i18n="nav_features">Features</a></li>
+                    <li><a href="#demo" data-i18n="nav_demo">Demo</a></li>
+                    <li><a href="#subscription" data-i18n="nav_subscription">Subscription</a></li>
+                    <li><a href="#contact" data-i18n="nav_contact">Contact</a></li>
+                </ul>
+
+                <!-- COMPACT CTA BUTTONS WITH LANGUAGE SWITCHER -->
+                <div class="cta-buttons">
+                    <button class="btn-lang-pill" id="langSwitchBtn" onclick="toggleLanguage()" title="भाषा बदलें / Change Language" type="button">
+                        <span id="langToggleFlag">🇮🇳</span> <span id="langToggleText">हिन्दी</span>
+                    </button>
+                    <button class="btn-header-farmer" onclick="window.location.href='/login'">
+                        <i class="fa-solid fa-tractor"></i> <span data-i18n="btn_farmer">Farmer</span>
+                    </button>
+                    <button class="btn-header-customer" onclick="window.location.href='/login'">
+                        <i class="fa-solid fa-basket-shopping"></i> <span data-i18n="btn_customer">Customer</span>
+                    </button>
+                </div>
+
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- HERO SECTION WITH EXACT AERIAL FIELD BACKGROUND -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <span class="hero-kicker" data-i18n="hero_kicker">Cultivating</span>
+                <h1 class="hero-title" data-i18n="hero_title">GROWING IDEAS</h1>
+                <p class="hero-subtitle" data-i18n="hero_subtitle">
+                    Long-established agricultural ecosystem empowering Indian farmers and families with AI intelligence, precision crop analytics, fair mandi prices, and direct farm-to-table delivery.
+                </p>
+                <div class="hero-actions">
+                    <a href="#subscription" class="btn-hero-primary" data-i18n="btn_start_sub">
+                        Start Subscription <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                    <a href="#features" class="btn-hero-outline" data-i18n="btn_explore_features">
+                        Explore Features <i class="fa-solid fa-arrow-down"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES SECTION ORGANIZED BY CULTIVATION LIFECYCLE STAGES -->
+    <section class="features-section reveal" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="features_tag">Agricultural Lifecycle</span>
+                <h2 class="section-title" data-i18n="features_title">End-to-End Farming Solutions</h2>
+                <p class="section-subtitle" data-i18n="features_subtitle">
+                    Explore comprehensive AI intelligence and farm support across every critical stage of cultivation.
+                </p>
+
+                <!-- Stage Quick Filter Tabs -->
+                <div class="stage-nav-tabs">
+                    <button class="stage-tab-btn active" onclick="filterStage('all')">
+                        <i class="fa-solid fa-layer-group"></i> <span data-i18n="tab_all_features">All Features</span>
+                    </button>
+                    <button class="stage-tab-btn" onclick="filterStage('pre')">
+                        <i class="fa-solid fa-seedling"></i> <span data-i18n="tab_pre_cultivation">Pre-Cultivation</span>
+                    </button>
+                    <button class="stage-tab-btn" onclick="filterStage('mid')">
+                        <i class="fa-solid fa-leaf"></i> <span data-i18n="tab_mid_cultivation">Middle of Cultivation</span>
+                    </button>
+                    <button class="stage-tab-btn" onclick="filterStage('post')">
+                        <i class="fa-solid fa-wheat-awn"></i> <span data-i18n="tab_post_cultivation">End of Cultivation</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STAGE 1: PRE-CULTIVATION -->
+            <div class="cultivation-stage-block" data-stage="pre">
+                <div class="stage-header-badge">
+                    <span class="stage-pill"><i class="fa-solid fa-seedling"></i> <span data-i18n="stage1_pill">Stage 01</span></span>
+                    <h3 data-i18n="stage1_title">Pre-Cultivation (Planning & Land Preparation)</h3>
+                    <p data-i18n="stage1_desc">Scientific soil testing, precision crop selection, seasonal weather forecasting, and land preparation before sowing.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-flask-vial"></i>
+                        </div>
+                        <h3 data-i18n="feat_soil_title">Soil Health & N-P-K Analysis</h3>
+                        <p data-i18n="feat_soil_desc">Assess soil nutrient levels, pH, and electrical conductivity with AI-driven recommendations for soil enrichment and balanced fertilization.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-brands fa-pagelines"></i>
+                        </div>
+                        <h3 data-i18n="feat_crop_title">Precision Crop Suggestions</h3>
+                        <p data-i18n="feat_crop_desc">Personalized recommendations tailored to local soil composition, regional water availability, and upcoming market demand.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-cloud-sun-rain"></i>
+                        </div>
+                        <h3 data-i18n="feat_weather_title">Monsoon & Weather Outlook</h3>
+                        <p data-i18n="feat_weather_desc">Long-range climate projections and seasonal monsoon forecasts helping farmers identify the optimal sowing window to minimize risk.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-tractor"></i>
+                        </div>
+                        <h3 data-i18n="feat_machinery_title">Land Preparation Machinery</h3>
+                        <p data-i18n="feat_machinery_desc">Book tractors, laser land levelers, and rotavators from nearby equipment owners at transparent hourly rates without middleman commissions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 2: MIDDLE OF CULTIVATION -->
+            <div class="cultivation-stage-block" data-stage="mid">
+                <div class="stage-header-badge">
+                    <span class="stage-pill"><i class="fa-solid fa-leaf"></i> <span data-i18n="stage2_pill">Stage 02</span></span>
+                    <h3 data-i18n="stage2_title">Middle of Cultivation (Crop Growth & Protection)</h3>
+                    <p data-i18n="stage2_desc">Active monitoring, instant disease diagnostics, precision irrigation, and nutrient management during vegetative development.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-shield-virus"></i>
+                        </div>
+                        <h3 data-i18n="feat_pest_title">AI Crop Disease & Pest Scanner</h3>
+                        <p data-i18n="feat_pest_desc">Upload photos of affected leaves for instant computer-vision disease diagnosis, early blight detection, and certified treatment protocols.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-droplet"></i>
+                        </div>
+                        <h3 data-i18n="feat_irrigation_title">Smart Irrigation Scheduling</h3>
+                        <p data-i18n="feat_irrigation_desc">Weather-linked moisture alerts preventing both over-watering and moisture stress while conserving groundwater resources.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-spray-can-sparkles"></i>
+                        </div>
+                        <h3 data-i18n="feat_nutrient_title">Nutrient & Bio-Fertilizer Guidance</h3>
+                        <p data-i18n="feat_nutrient_desc">Calculated dosage recommendations for organic manures and fertilizers during key vegetative and flowering phases.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-bell"></i>
+                        </div>
+                        <h3 data-i18n="feat_alerts_title">Growth Tracking & Advisory Alerts</h3>
+                        <p data-i18n="feat_alerts_desc">Real-time agronomic alerts and localized pest outbreak warnings sent straight to WhatsApp to keep crops healthy and productive.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAGE 3: END OF CULTIVATION -->
+            <div class="cultivation-stage-block" data-stage="post">
+                <div class="stage-header-badge">
+                    <span class="stage-pill"><i class="fa-solid fa-wheat-awn"></i> <span data-i18n="stage3_pill">Stage 03</span></span>
+                    <h3 data-i18n="stage3_title">End of Cultivation (Harvest, Packaging & Direct Sales)</h3>
+                    <p data-i18n="stage3_desc">Harvest machinery booking, damage-free standard packaging, real mandi rates, and direct consumer marketplace.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-truck-pickup"></i>
+                        </div>
+                        <h3 data-i18n="feat_harvester_title">Harvester & Thresher Rental</h3>
+                        <p data-i18n="feat_harvester_desc">Rent combine harvesters and threshers during peak harvest season without middleman delays or inflated pricing.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-boxes-packing"></i>
+                        </div>
+                        <h3 data-i18n="feat_pkg_title">Smart Standard Packaging</h3>
+                        <p data-i18n="feat_pkg_desc">Small-sized eco-crates (5kg, 10kg, 25kg) that protect produce from transit spoilage and make it kitchen-ready for urban consumers.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <h3 data-i18n="feat_mandi_title">Real-Time Mandi Price Benchmarks</h3>
+                        <p data-i18n="feat_mandi_desc">Live APMC mandi rates updated daily so farmers negotiate and sell their harvest from a position of data-backed confidence.</p>
+                    </div>
+
+                    <div class="feature-card">
+                        <div class="feature-icon-box">
+                            <i class="fa-solid fa-hand-holding-dollar"></i>
+                        </div>
+                        <h3 data-i18n="feat_market_title">Direct Farmer Marketplace</h3>
+                        <p data-i18n="feat_market_desc">Sell directly to retail families and subscribers with prompt digital payouts, guaranteed fair pricing, and 0% commission deduction.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE DEMO SECTION -->
+    <section class="demo-section reveal" id="demo">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="demo_tag">Live Preview</span>
+                <h2 class="section-title" data-i18n="demo_title">Explore Our Services</h2>
+                <p class="section-subtitle" data-i18n="demo_subtitle">
+                    Experience Agro-Haat's intelligent modules in real-time.
+                </p>
+            </div>
+            <div class="demo-wrapper">
+                <div class="demo-tabs">
+                    <button class="demo-tab-btn active" onclick="showDemo('weather')">
+                        <i class="fa-solid fa-cloud-sun-rain"></i> <span data-i18n="demo_tab_weather">Weather Forecast</span>
+                    </button>
+                    <button class="demo-tab-btn" onclick="showDemo('crops')">
+                        <i class="fa-solid fa-seedling"></i> <span data-i18n="demo_tab_crops">AI Crop Health</span>
+                    </button>
+                    <button class="demo-tab-btn" onclick="showDemo('machinery')">
+                        <i class="fa-solid fa-tractor"></i> <span data-i18n="demo_tab_machinery">Machinery Rental</span>
+                    </button>
+                    <button class="demo-tab-btn" onclick="showDemo('marketplace')">
+                        <i class="fa-solid fa-shop"></i> <span data-i18n="demo_tab_market">Direct Market</span>
+                    </button>
+                </div>
+                <div class="demo-display-box" id="demoContent">
+                    <h3><i class="fa-solid fa-cloud-sun text-emerald"></i> Real-Time Weather Forecasting</h3>
+                    <p><strong>Today's Agricultural Weather:</strong> Sunny, 28°C | Wind: 8 km/h NW | Humidity: 54%</p>
+                    <p><strong>7-Day Outlook:</strong> Light pre-monsoon showers expected on Day 3</p>
+                    <p><strong>AI Irrigation Alert:</strong> 🟡 Moderate rainfall expected. Hold heavy irrigation for 48 hours to conserve groundwater.</p>
+                    <p><strong>Sowing Recommendation:</strong> Soil moisture is optimum for mustard and wheat preparation.</p>
+                    
+                    <div class="weather-search-bar">
+                        <input type="text" id="weatherQuickCity" placeholder="Enter your city (e.g., Delhi, Karnal, Jaipur)">
+                        <button onclick="getQuickWeather()"><i class="fa-solid fa-magnifying-glass"></i> Check City</button>
+                    </div>
+                    <div id="quickWeatherResult" style="margin-top: 15px; font-weight: 600;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SUBSCRIPTION PLANS SECTION -->
+    <section class="subscription-section reveal" id="subscription">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="sub_tag">Flexible Delivery</span>
+                <h2 class="section-title" data-i18n="sub_title">Subscription Packages</h2>
+                <p class="section-subtitle" data-i18n="sub_subtitle">
+                    Farm-fresh, chemical-free vegetables and seasonal produce delivered automatically to your family doorstep.
+                </p>
+            </div>
+            <div class="pricing-grid">
+                <!-- Daily Pack -->
+                <div class="pricing-card">
+                    <h3 data-i18n="sub_daily_title">Daily Fresh Pack</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;" data-i18n="sub_daily_desc">Essential daily cooking greens & vegetables</p>
+                    <div class="pricing-price">
+                        ₹49 <span>/ day</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fa-solid fa-circle-check"></i> Fresh seasonal vegetables daily</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Hand-picked from morning harvest</li>
+                        <li><i class="fa-solid fa-circle-check"></i> 100% free doorstep delivery</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Pause or cancel anytime</li>
+                    </ul>
+                    <button class="btn-pricing btn-pricing-secondary" onclick="window.location.href='/login'" data-i18n="btn_subscribe">
+                        Subscribe Now
+                    </button>
+                </div>
+
+                <!-- Weekly Pack (Featured) -->
+                <div class="pricing-card featured">
+                    <span class="featured-ribbon" data-i18n="sub_popular">Most Popular</span>
+                    <h3 data-i18n="sub_weekly_title">Weekly Family Basket</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;" data-i18n="sub_weekly_desc">Ideal for a family of 3-5 members</p>
+                    <div class="pricing-price">
+                        ₹99 <span>/ week</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fa-solid fa-circle-check"></i> 6-8 varieties of seasonal veggies</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Delivered twice a week</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Fixed price guarantee (no market surge)</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Priority customer support</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Custom veggie swap options</li>
+                    </ul>
+                    <button class="btn-pricing btn-pricing-primary" onclick="window.location.href='/login'" data-i18n="btn_subscribe">
+                        Subscribe Now
+                    </button>
+                </div>
+
+                <!-- Monthly Pack -->
+                <div class="pricing-card">
+                    <h3 data-i18n="sub_monthly_title">Monthly Super Value</h3>
+                    <p style="color: var(--text-muted); font-size: 0.95rem;" data-i18n="sub_monthly_desc">Complete monthly farm-fresh pantry care</p>
+                    <div class="pricing-price">
+                        ₹999 <span>/ month</span>
+                    </div>
+                    <ul class="pricing-features">
+                        <li><i class="fa-solid fa-circle-check"></i> Comprehensive weekly large hampers</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Free seasonal organic fruit bonuses</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Fully customizable produce basket</li>
+                        <li><i class="fa-solid fa-circle-check"></i> Dedicated personal hub coordinator</li>
+                    </ul>
+                    <button class="btn-pricing btn-pricing-secondary" onclick="window.location.href='/login'" data-i18n="btn_subscribe">
+                        Subscribe Now
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- IMPACT STATS SECTION -->
+    <section class="stats-section reveal">
+        <div class="container">
+            <h2 class="stats-title" data-i18n="stats_heading">Transforming Agriculture Nationwide</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">5,000+</div>
+                    <div class="stat-label" data-i18n="stat_farmers">Verified Farmers Connected</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">25,000+</div>
+                    <div class="stat-label" data-i18n="stat_customers">Satisfied Urban Families</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">30%</div>
+                    <div class="stat-label" data-i18n="stat_income">Higher Farmer Net Earnings</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">40%</div>
+                    <div class="stat-label" data-i18n="stat_waste">Reduced Post-Harvest Loss</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer id="contact">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="logo" style="margin-bottom: 18px;">
+                        <span class="logo-leaf-icon"><i class="fa-solid fa-leaf"></i></span>
+                        <span class="logo-text">AGRO<span>HAAT</span></span>
+                    </div>
+                    <p>
+                        A pioneering AI-powered smart agriculture ecosystem dedicated to elevating farmer livelihoods and delivering wholesome organic-grade food direct to consumers.
+                    </p>
+                </div>
+
+                <div class="footer-col">
+                    <h3>For Farmers</h3>
+                    <ul>
+                        <li><a href="/register"><i class="fa-solid fa-angle-right"></i> Register as Farmer</a></li>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> Real-time Weather Radar</a></li>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> AI Crop Disease Scan</a></li>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> Rent Farm Equipment</a></li>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> Today's Mandi Rates</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>For Customers</h3>
+                    <ul>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> Explore Fresh Marketplace</a></li>
+                        <li><a href="#subscription"><i class="fa-solid fa-angle-right"></i> Flexible Veggie Subscriptions</a></li>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> Track Hub Order Delivery</a></li>
+                        <li><a href="/login"><i class="fa-solid fa-angle-right"></i> Support & Quality Guarantee</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h3>Contact & Hubs</h3>
+                    <div class="footer-contact-item">
+                        <i class="fa-solid fa-phone"></i>
+                        <span>Helpline: +91 98765 43210</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fa-solid fa-envelope"></i>
+                        <span>support@agrohaat.com</span>
+                    </div>
+                    <div class="footer-contact-item">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span>Regional Collection Hubs: Haryana, Punjab, Rajasthan, Delhi NCR</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 Agro-Haat AI 2.0. All Rights Reserved. Empowering Sustainable Indian Farming.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT & MULTILINGUAL TRANSLATION -->
+    <script src="/js/script.js?v=4"></script>
+    <script src="/js/i18n.js"></script>
+</body>
+</html>

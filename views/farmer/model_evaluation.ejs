@@ -1,0 +1,253 @@
+<%- include('../partials/header', { page_title: 'Model Evaluation & Test Performance' }) %>
+<%- include('../partials/navbar_farmer') %>
+
+<div class="container-fluid py-4 px-lg-5">
+    <!-- Header Banner -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-dark px-3 py-2 rounded-pill"><i class="fas fa-vial me-1 text-warning"></i> Independent Test Set Evaluation</span>
+                <span class="badge bg-success px-3 py-2 rounded-pill" id="evalModelBadge">ConvNeXt-Tiny</span>
+                <span class="badge bg-primary px-3 py-2 rounded-pill">Zero Data Leakage</span>
+            </div>
+            <h2 class="fw-bold mb-0 text-dark">Model Performance & Genuine Unseen Test Metrics</h2>
+            <p class="text-muted small mb-0">Evaluated on completely unseen test data (15% split held out during all training). No mocked or hardcoded figures.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-lg-0">
+            <button id="reEvaluateBtn" class="btn btn-danger rounded-pill px-4">
+                <i class="fas fa-play me-2"></i>Run Live Test Re-Evaluation
+            </button>
+            <a href="/farmer/judge_test" class="btn btn-outline-dark rounded-pill px-4">
+                <i class="fas fa-balance-scale me-2"></i>Judge Test Mode
+            </a>
+        </div>
+    </div>
+
+    <!-- Live Execution Alert / Toast -->
+    <div id="evalRunningAlert" class="alert alert-warning border-0 rounded-4 shadow-sm p-3 mb-4 d-none align-items-center gap-3">
+        <div class="spinner-border text-danger spinner-border-sm" role="status"></div>
+        <div>
+            <strong>Evaluating Unseen Test Dataset on GPU:</strong> Processing held-out test images batch-by-batch and recalculating confusion matrix...
+        </div>
+    </div>
+
+    <!-- 4 Key Metric Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white border-top border-4 border-primary">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Overall Test Accuracy</div>
+                <div class="fs-1 fw-bold text-primary mb-1" id="statAccuracy">--%</div>
+                <div class="extra-small text-muted" style="font-size: 0.8rem;">Fraction of total correct classifications</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white border-top border-4 border-success">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Macro F1-Score</div>
+                <div class="fs-1 fw-bold text-success mb-1" id="statF1">--%</div>
+                <div class="extra-small text-muted" style="font-size: 0.8rem;">Unweighted mean across all 23 classes</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white border-top border-4 border-warning">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Macro Precision</div>
+                <div class="fs-1 fw-bold text-warning mb-1" id="statPrecision">--%</div>
+                <div class="extra-small text-muted" style="font-size: 0.8rem;">Mean specificity / false positive resistance</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white border-top border-4 border-danger">
+                <div class="text-muted small fw-bold text-uppercase mb-1">Macro Recall</div>
+                <div class="fs-1 fw-bold text-danger mb-1" id="statRecall">--%</div>
+                <div class="extra-small text-muted" style="font-size: 0.8rem;">True positive sensitivity across classes</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+        <!-- Confusion Matrix Visualizer -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-th me-2 text-danger"></i>Confusion Matrix (Unseen Test Set)</h5>
+                    <span class="badge bg-light text-dark border" id="testDatasetSizeBadge">Held-out Samples: --</span>
+                </div>
+                <p class="text-muted small mb-3">
+                    Diagonal cells indicate correct predictions. Off-diagonal numbers reveal inter-pathogen confusion.
+                </p>
+                <div class="text-center p-2 bg-light rounded-3">
+                    <img id="cmImage" src="http://127.0.0.1:8000/confusion_matrix" class="img-fluid rounded-3 shadow-sm border" alt="Confusion Matrix Heatmap" style="max-height: 520px; width: 100%; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Comparison Card -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-trophy me-2 text-warning"></i>Model Architecture Comparison</h5>
+                <p class="text-muted small mb-3">
+                    Evaluation of Candidate Neural Architectures trained under identical augmentation and splits on the RTX 2050 GPU:
+                </p>
+
+                <div class="table-responsive mb-3">
+                    <table class="table table-hover align-middle small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Model</th>
+                                <th>Test Acc</th>
+                                <th>Macro F1</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparisonTableBody">
+                            <tr>
+                                <td><strong>ConvNeXt-Tiny</strong></td>
+                                <td id="cmpConvAcc">--%</td>
+                                <td id="cmpConvF1">--%</td>
+                                <td><span class="badge bg-success" id="cmpConvBadge">Active</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>EfficientNet-B2</strong></td>
+                                <td id="cmpEffAcc">--%</td>
+                                <td id="cmpEffF1">--%</td>
+                                <td><span class="badge bg-secondary" id="cmpEffBadge">Evaluated</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold small text-dark mb-1"><i class="fas fa-shield-alt text-success me-1"></i> Non-Leaf Rejection Verification</h6>
+                    <p class="extra-small text-muted mb-2" style="font-size: 0.8rem;">
+                        Our dataset integrates arbitrary non-leaf background textures and entropy gates. The model rejects out-of-distribution photos rather than guessing with false confidence.
+                    </p>
+                    <div class="d-flex justify-content-between small">
+                        <span>Background Rejection F1:</span>
+                        <strong class="text-success" id="bgRejectionF1">--%</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-Class Performance Table -->
+    <div class="card shadow-sm border-0 rounded-4 p-4 bg-white">
+        <h5 class="fw-bold text-dark mb-3"><i class="fas fa-table me-2 text-primary"></i>Per-Class Test Performance Breakdown</h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle small">
+                <thead class="table-light">
+                    <tr>
+                        <th>Class Key</th>
+                        <th>Crop & Condition</th>
+                        <th>Test Samples</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                        <th>Rating</th>
+                    </tr>
+                </thead>
+                <tbody id="perClassTableBody">
+                    <tr><td colspan="7" class="text-center text-muted py-4">Loading test evaluation metrics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadMetrics() {
+    try {
+        const res = await fetch('http://127.0.0.1:8000/metrics');
+        if (!res.ok) throw new Error('Could not fetch metrics');
+        const data = await res.json();
+
+        // 1. Overall Metrics
+        const overall = data.overall_metrics || data.test_metrics || {};
+        document.getElementById('statAccuracy').innerText = `${Math.round((overall.accuracy || 0) * 1000) / 10}%`;
+        document.getElementById('statF1').innerText = `${Math.round((overall.macro_f1 || 0) * 1000) / 10}%`;
+        document.getElementById('statPrecision').innerText = `${Math.round((overall.macro_precision || overall.precision || 0) * 1000) / 10}%`;
+        document.getElementById('statRecall').innerText = `${Math.round((overall.macro_recall || overall.recall || 0) * 1000) / 10}%`;
+
+        document.getElementById('evalModelBadge').innerText = (data.model_architecture || 'ConvNeXt-Tiny').toUpperCase();
+        document.getElementById('testDatasetSizeBadge').innerText = `Held-out Test Images: ${data.test_dataset_size || '--'}`;
+
+        // 2. Refresh Confusion Matrix image with cache buster
+        document.getElementById('cmImage').src = `http://127.0.0.1:8000/confusion_matrix?t=${Date.now()}`;
+
+        // 3. Comparison
+        if (data.comparison) {
+            if (data.comparison.convnext_tiny) {
+                const c = data.comparison.convnext_tiny.test_metrics;
+                document.getElementById('cmpConvAcc').innerText = `${Math.round(c.accuracy * 1000)/10}%`;
+                document.getElementById('cmpConvF1').innerText = `${Math.round(c.macro_f1 * 1000)/10}%`;
+            }
+            if (data.comparison.efficientnet_b2) {
+                const e = data.comparison.efficientnet_b2.test_metrics;
+                document.getElementById('cmpEffAcc').innerText = `${Math.round(e.accuracy * 1000)/10}%`;
+                document.getElementById('cmpEffF1').innerText = `${Math.round(e.macro_f1 * 1000)/10}%`;
+            }
+        }
+
+        // 4. Per-Class Table
+        const tbody = document.getElementById('perClassTableBody');
+        tbody.innerHTML = '';
+        const perClass = data.per_class_metrics || {};
+        
+        let bgF1 = '--';
+        for (const [cls, stats] of Object.entries(perClass)) {
+            const f1Pct = Math.round(stats.f1_score * 1000) / 10;
+            const precPct = Math.round(stats.precision * 1000) / 10;
+            const recPct = Math.round(stats.recall * 1000) / 10;
+            
+            if (cls.includes('Background')) {
+                bgF1 = `${f1Pct}%`;
+            }
+
+            let ratingBadge = '<span class="badge bg-success">Strong</span>';
+            if (f1Pct < 75) ratingBadge = '<span class="badge bg-warning text-dark">Moderate</span>';
+            if (f1Pct < 60) ratingBadge = '<span class="badge bg-danger">Review</span>';
+
+            const cleanName = cls.replace(/___/g, ' - ').replace(/_/g, ' ');
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><code>${cls}</code></td>
+                    <td><strong>${cleanName}</strong></td>
+                    <td>${stats.support}</td>
+                    <td>${precPct}%</td>
+                    <td>${recPct}%</td>
+                    <td><strong>${f1Pct}%</strong></td>
+                    <td>${ratingBadge}</td>
+                </tr>
+            `;
+        }
+        document.getElementById('bgRejectionF1').innerText = bgF1;
+
+    } catch (e) {
+        console.warn('Metrics fetch error:', e);
+    }
+}
+
+// Re-evaluate button
+document.getElementById('reEvaluateBtn').onclick = async () => {
+    const alertBox = document.getElementById('evalRunningAlert');
+    alertBox.classList.remove('d-none');
+    alertBox.classList.add('d-flex');
+
+    try {
+        const res = await fetch('http://127.0.0.1:8000/evaluate', { method: 'POST' });
+        const resData = await res.json();
+        alertBox.classList.add('d-none');
+        alertBox.classList.remove('d-flex');
+        alert('Evaluation complete! Unseen Test Set Accuracy: ' + Math.round(resData.metrics.accuracy * 100) + '%');
+        loadMetrics();
+    } catch (err) {
+        alertBox.classList.add('d-none');
+        alertBox.classList.remove('d-flex');
+        alert('Evaluation failed: ' + err.message);
+    }
+};
+
+window.onload = loadMetrics;
+</script>
+
+<%- include('../partials/footer') %>

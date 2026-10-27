@@ -1,0 +1,438 @@
+/* ==========================================================================
+   AGRO-HAAT 2.0 - GLASSMORPHISM AUTH PAGES (LOGIN & REGISTER)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --primary-green: #22c55e;
+    --primary-dark: #0f3822;
+    --primary-light: #4ade80;
+    --accent-emerald: #10b981;
+    --text-white: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.72);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body.auth-page {
+    min-height: 100vh;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text-white);
+    background: 
+        radial-gradient(circle at 50% 20%, rgba(34, 197, 94, 0.15) 0%, transparent 60%),
+        linear-gradient(135deg, rgba(8, 26, 16, 0.68) 0%, rgba(5, 18, 11, 0.78) 100%),
+        url('/images/auth_bg.jpg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 16px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Floating Return Home Button */
+.btn-auth-home {
+    position: fixed;
+    top: 24px;
+    left: 24px;
+    z-index: 100;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 18px;
+    background: rgba(12, 34, 21, 0.65);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 9999px;
+    color: #ffffff;
+    text-decoration: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-auth-home:hover {
+    background: rgba(34, 197, 94, 0.35);
+    border-color: rgba(74, 222, 128, 0.6);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(34, 197, 94, 0.35);
+    color: #ffffff;
+}
+
+/* Main Centered Glassmorphism Box */
+.auth-wrapper {
+    width: 100%;
+    max-width: 480px;
+    position: relative;
+    z-index: 10;
+    animation: authBoxPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.auth-wrapper.auth-register-wide {
+    max-width: 540px;
+}
+
+@keyframes authBoxPop {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.auth-glass-box {
+    background: rgba(10, 32, 19, 0.68);
+    backdrop-filter: blur(28px) saturate(200%);
+    -webkit-backdrop-filter: blur(28px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 26px;
+    padding: 38px 34px;
+    box-shadow: 
+        0 25px 60px rgba(0, 0, 0, 0.5), 
+        inset 0 1px 1px rgba(255, 255, 255, 0.35),
+        0 0 35px rgba(34, 197, 94, 0.16);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-glass-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, #22c55e, #4ade80, transparent);
+}
+
+/* Auth Header & Branding */
+.auth-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.auth-logo-badge {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 12px;
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #ffffff;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    transform: rotate(-8deg);
+    transition: transform 0.3s ease;
+}
+
+.auth-logo-badge:hover {
+    transform: rotate(0deg) scale(1.08);
+}
+
+.auth-brand-name {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+}
+
+.auth-brand-name span {
+    color: var(--primary-light);
+}
+
+.auth-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 4px;
+}
+
+.auth-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+/* Alert Styling */
+.auth-alert {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 20px;
+    backdrop-filter: blur(10px);
+}
+
+.auth-alert-danger {
+    background: rgba(239, 68, 68, 0.22);
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    color: #fca5a5;
+}
+
+.auth-alert-success {
+    background: rgba(34, 197, 94, 0.22);
+    border: 1px solid rgba(74, 222, 128, 0.4);
+    color: #86efac;
+}
+
+.auth-alert-info {
+    background: rgba(56, 189, 248, 0.22);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #bae6fd;
+}
+
+/* Form Groups & Inputs */
+.form-group-item {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+.form-group-item label {
+    display: block;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 7px;
+    letter-spacing: 0.2px;
+}
+
+.form-group-item label i {
+    color: var(--primary-light);
+    margin-right: 6px;
+    font-size: 0.85rem;
+}
+
+.input-icon-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon-wrap i {
+    position: absolute;
+    left: 15px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.95rem;
+    pointer-events: none;
+    transition: color 0.25s ease;
+}
+
+.input-icon-wrap input,
+.input-icon-wrap select {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #ffffff;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.25s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.input-icon-wrap select {
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.08);
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.input-icon-wrap select option {
+    background: #0f2c1b;
+    color: #ffffff;
+    padding: 8px;
+}
+
+.input-icon-wrap .select-chevron {
+    position: absolute;
+    right: 15px;
+    left: auto;
+    color: rgba(255, 255, 255, 0.5);
+    pointer-events: none;
+}
+
+.input-icon-wrap input::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.input-icon-wrap input:focus,
+.input-icon-wrap select:focus {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: var(--primary-light);
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.input-icon-wrap input:focus + i,
+.input-icon-wrap input:focus ~ i {
+    color: var(--primary-light);
+}
+
+/* Two Column Row for Wide Forms */
+.form-row-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+@media (max-width: 520px) {
+    .form-row-2col {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+}
+
+/* Submit Button */
+.btn-auth-submit {
+    width: 100%;
+    padding: 13px 20px;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.02rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(34, 197, 94, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-auth-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.65);
+    background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
+}
+
+.btn-auth-submit:active {
+    transform: translateY(0);
+}
+
+/* Bottom Links & Helpers */
+.auth-extra-links {
+    margin-top: 22px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+    font-size: 0.88rem;
+}
+
+.auth-extra-links p {
+    color: var(--text-muted);
+}
+
+.auth-link {
+    color: var(--primary-light);
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.auth-link:hover {
+    color: #ffffff;
+    text-decoration: underline;
+    text-shadow: 0 0 10px rgba(74, 222, 128, 0.7);
+}
+
+.auth-forgot-link {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.84rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: color 0.2s ease;
+}
+
+.auth-forgot-link:hover {
+    color: #ffffff;
+}
+
+/* Forgot Password Glass Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.modal-box {
+    background: rgba(10, 32, 19, 0.95);
+    backdrop-filter: blur(28px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 22px;
+    width: 100%;
+    max-width: 440px;
+    margin: 80px auto;
+    padding: 30px 26px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 30px rgba(34, 197, 94, 0.2);
+    position: relative;
+    color: #ffffff;
+    animation: authBoxPop 0.3s ease;
+}
+
+.modal-box .close {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.modal-box .close:hover {
+    opacity: 1;
+}
+
+.modal-box h4 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary-light);
+    margin-bottom: 12px;
+    text-align: center;
+}

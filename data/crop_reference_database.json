@@ -1,0 +1,290 @@
+{
+  "Wheat": {
+    "name_en": "Wheat",
+    "name_hi": "गेहूं",
+    "scientific_name": "Triticum aestivum",
+    "crop_type": "Cereal",
+    "primary_season": ["Rabi"],
+    "compatible_soils": ["Alluvial Soil", "Clay Loam", "Loamy Soil", "Black Cotton Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 140, "opt_min": 240, "opt_max": 450, "max": 700, "unit": "kg/ha" },
+      "p_range": { "min": 8, "opt_min": 15, "opt_max": 35, "max": 65, "unit": "kg/ha" },
+      "k_range": { "min": 90, "opt_min": 150, "opt_max": 320, "max": 550, "unit": "kg/ha" },
+      "ph_range": { "min": 5.8, "opt_min": 6.2, "opt_max": 7.5, "max": 8.4 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 10, "opt_min": 15, "opt_max": 25, "max": 32, "unit": "°C" },
+      "humidity_range": { "min": 30, "opt_min": 45, "opt_max": 70, "max": 85, "unit": "%" },
+      "seasonal_rainfall": { "min": 25, "opt_min": 50, "opt_max": 150, "max": 350, "unit": "mm" }
+    },
+    "market_commodity_name": "Wheat",
+    "typical_yield_q_ha": 45,
+    "cost_of_cultivation_inr_ha": 32000,
+    "advice_en": "Requires cool winter temperatures for tillering. Ensure CRI (Crown Root Initiation) irrigation at 21-25 days after sowing.",
+    "advice_hi": "कल्ले फूटने के लिए ठंडे मौसम की आवश्यकता होती है। बुवाई के 21-25 दिनों बाद ताज मूल (CRI) अवस्था में पहली सिंचाई अवश्य करें।"
+  },
+  "Paddy (Rice)": {
+    "name_en": "Paddy / Rice",
+    "name_hi": "धान / चावल",
+    "scientific_name": "Oryza sativa",
+    "crop_type": "Cereal",
+    "primary_season": ["Kharif", "Rabi"],
+    "compatible_soils": ["Alluvial Soil", "Clay Loam", "Loamy Soil", "Black Cotton Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 150, "opt_min": 260, "opt_max": 480, "max": 750, "unit": "kg/ha" },
+      "p_range": { "min": 7, "opt_min": 12, "opt_max": 30, "max": 55, "unit": "kg/ha" },
+      "k_range": { "min": 80, "opt_min": 140, "opt_max": 300, "max": 500, "unit": "kg/ha" },
+      "ph_range": { "min": 5.0, "opt_min": 5.5, "opt_max": 7.2, "max": 8.2 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 20, "opt_min": 24, "opt_max": 34, "max": 40, "unit": "°C" },
+      "humidity_range": { "min": 55, "opt_min": 70, "opt_max": 90, "max": 98, "unit": "%" },
+      "seasonal_rainfall": { "min": 200, "opt_min": 500, "opt_max": 1200, "max": 2500, "unit": "mm" }
+    },
+    "market_commodity_name": "Paddy(Dhan)(Common)",
+    "typical_yield_q_ha": 50,
+    "cost_of_cultivation_inr_ha": 36000,
+    "advice_en": "Requires high soil moisture and standing water during vegetative and tillering stages. Avoid water stress during panicle initiation.",
+    "advice_hi": "पौधे के शुरुआती विकास व कल्ले फूटते समय खेत में पर्याप्त नमी आवश्यक है। बाली निकलते समय जल संकट न होने दें।"
+  },
+  "Maize": {
+    "name_en": "Maize / Corn",
+    "name_hi": "मक्का",
+    "scientific_name": "Zea mays",
+    "crop_type": "Cereal / Feed",
+    "primary_season": ["Kharif", "Rabi", "Zaid"],
+    "compatible_soils": ["Alluvial Soil", "Loamy Soil", "Sandy Loam", "Red / Laterite"],
+    "soil_nutrients": {
+      "n_range": { "min": 160, "opt_min": 250, "opt_max": 460, "max": 700, "unit": "kg/ha" },
+      "p_range": { "min": 8, "opt_min": 15, "opt_max": 35, "max": 60, "unit": "kg/ha" },
+      "k_range": { "min": 90, "opt_min": 150, "opt_max": 300, "max": 500, "unit": "kg/ha" },
+      "ph_range": { "min": 5.8, "opt_min": 6.2, "opt_max": 7.5, "max": 8.0 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 16, "opt_min": 22, "opt_max": 32, "max": 38, "unit": "°C" },
+      "humidity_range": { "min": 40, "opt_min": 55, "opt_max": 80, "max": 90, "unit": "%" },
+      "seasonal_rainfall": { "min": 100, "opt_min": 300, "opt_max": 650, "max": 1100, "unit": "mm" }
+    },
+    "market_commodity_name": "Maize",
+    "typical_yield_q_ha": 55,
+    "cost_of_cultivation_inr_ha": 30000,
+    "advice_en": "Extremely sensitive to waterlogging. Ensure well-drained fertile loam and apply Nitrogen in 3 splits (Knee-high, Tasseling, Grain-filling).",
+    "advice_hi": "जलभराव के प्रति अत्यधिक संवेदनशील है। जल निकास की उत्तम व्यवस्था करें और यूरिया को घुटने की ऊंचाई, नर-मंजरी एवं दाना भराव पर किस्तों में दें।"
+  },
+  "Mustard": {
+    "name_en": "Mustard / Rapeseed",
+    "name_hi": "सरसों / राई",
+    "scientific_name": "Brassica juncea",
+    "crop_type": "Oilseed",
+    "primary_season": ["Rabi"],
+    "compatible_soils": ["Alluvial Soil", "Loamy Soil", "Sandy Loam", "Clay Loam"],
+    "soil_nutrients": {
+      "n_range": { "min": 120, "opt_min": 200, "opt_max": 380, "max": 550, "unit": "kg/ha" },
+      "p_range": { "min": 6, "opt_min": 12, "opt_max": 28, "max": 50, "unit": "kg/ha" },
+      "k_range": { "min": 70, "opt_min": 120, "opt_max": 250, "max": 450, "unit": "kg/ha" },
+      "ph_range": { "min": 6.0, "opt_min": 6.5, "opt_max": 7.8, "max": 8.5 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 10, "opt_min": 15, "opt_max": 25, "max": 30, "unit": "°C" },
+      "humidity_range": { "min": 35, "opt_min": 50, "opt_max": 75, "max": 88, "unit": "%" },
+      "seasonal_rainfall": { "min": 15, "opt_min": 40, "opt_max": 120, "max": 250, "unit": "mm" }
+    },
+    "market_commodity_name": "Mustard",
+    "typical_yield_q_ha": 20,
+    "cost_of_cultivation_inr_ha": 22000,
+    "advice_en": "Responsive to Sulphur (20 kg S/ha). Protect from aphid attack during cloudy humid weather at flowering stage.",
+    "advice_hi": "गंधक (सल्फर 20 किग्रा/हे.) के प्रति अत्यधिक संवेदनशील। फूल आते समय बादलों वाले मौसम में माहू (चेपा) कीट की निगरानी रखें।"
+  },
+  "Cotton": {
+    "name_en": "Cotton",
+    "name_hi": "कपास",
+    "scientific_name": "Gossypium hirsutum",
+    "crop_type": "Cash / Fiber",
+    "primary_season": ["Kharif"],
+    "compatible_soils": ["Black Cotton Soil", "Alluvial Soil", "Clay Loam"],
+    "soil_nutrients": {
+      "n_range": { "min": 150, "opt_min": 240, "opt_max": 420, "max": 650, "unit": "kg/ha" },
+      "p_range": { "min": 8, "opt_min": 14, "opt_max": 30, "max": 55, "unit": "kg/ha" },
+      "k_range": { "min": 100, "opt_min": 160, "opt_max": 320, "max": 550, "unit": "kg/ha" },
+      "ph_range": { "min": 6.2, "opt_min": 6.8, "opt_max": 8.0, "max": 8.6 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 21, "opt_min": 25, "opt_max": 35, "max": 42, "unit": "°C" },
+      "humidity_range": { "min": 45, "opt_min": 60, "opt_max": 80, "max": 90, "unit": "%" },
+      "seasonal_rainfall": { "min": 150, "opt_min": 400, "opt_max": 800, "max": 1400, "unit": "mm" }
+    },
+    "market_commodity_name": "Cotton",
+    "typical_yield_q_ha": 25,
+    "cost_of_cultivation_inr_ha": 38000,
+    "advice_en": "Deep taproot system thrives in moisture-retentive black soil. Avoid water stagnation and install pheromone traps for pink bollworm.",
+    "advice_hi": "काली मिट्टी में गहराई तक जाने वाली जड़ें नमी संचित करती हैं। जलभराव से बचाएं तथा गुलाबी सुंडी की रोकथाम के लिए फेरोमोन ट्रैप लगाएं।"
+  },
+  "Soybean": {
+    "name_en": "Soybean",
+    "name_hi": "सोयाबीन",
+    "scientific_name": "Glycine max",
+    "crop_type": "Oilseed / Legume",
+    "primary_season": ["Kharif"],
+    "compatible_soils": ["Black Cotton Soil", "Loamy Soil", "Alluvial Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 100, "opt_min": 180, "opt_max": 320, "max": 500, "unit": "kg/ha" },
+      "p_range": { "min": 10, "opt_min": 18, "opt_max": 40, "max": 70, "unit": "kg/ha" },
+      "k_range": { "min": 80, "opt_min": 140, "opt_max": 280, "max": 450, "unit": "kg/ha" },
+      "ph_range": { "min": 6.0, "opt_min": 6.5, "opt_max": 7.5, "max": 8.2 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 18, "opt_min": 24, "opt_max": 32, "max": 38, "unit": "°C" },
+      "humidity_range": { "min": 50, "opt_min": 65, "opt_max": 85, "max": 95, "unit": "%" },
+      "seasonal_rainfall": { "min": 150, "opt_min": 350, "opt_max": 700, "max": 1200, "unit": "mm" }
+    },
+    "market_commodity_name": "Soyabean",
+    "typical_yield_q_ha": 25,
+    "cost_of_cultivation_inr_ha": 24000,
+    "advice_en": "Biological Nitrogen fixer; responds well to Phosphatic fertilization (DAP/SSP) and Rhizobium japonicum seed inoculation.",
+    "advice_hi": "प्राकृतिक नत्रजन स्थिरीकारक दलहन; बुवाई पूर्व राइजोबियम जीवाणु व पीएसबी से बीज उपचार करें और पर्याप्त फास्फोरस दें।"
+  },
+  "Chickpea (Gram)": {
+    "name_en": "Chickpea / Gram",
+    "name_hi": "चना",
+    "scientific_name": "Cicer arietinum",
+    "crop_type": "Pulse / Legume",
+    "primary_season": ["Rabi"],
+    "compatible_soils": ["Loamy Soil", "Sandy Loam", "Black Cotton Soil", "Alluvial Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 80, "opt_min": 160, "opt_max": 300, "max": 450, "unit": "kg/ha" },
+      "p_range": { "min": 8, "opt_min": 15, "opt_max": 32, "max": 60, "unit": "kg/ha" },
+      "k_range": { "min": 60, "opt_min": 110, "opt_max": 240, "max": 400, "unit": "kg/ha" },
+      "ph_range": { "min": 6.0, "opt_min": 6.5, "opt_max": 7.8, "max": 8.4 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 8, "opt_min": 14, "opt_max": 26, "max": 32, "unit": "°C" },
+      "humidity_range": { "min": 30, "opt_min": 45, "opt_max": 65, "max": 80, "unit": "%" },
+      "seasonal_rainfall": { "min": 10, "opt_min": 30, "opt_max": 100, "max": 200, "unit": "mm" }
+    },
+    "market_commodity_name": "Gram(Bengal Gram/Kabuli Gram)",
+    "typical_yield_q_ha": 20,
+    "cost_of_cultivation_inr_ha": 20000,
+    "advice_en": "Low water requirement pulse. Excessive nitrogen causes vegetative overgrowth at the expense of pod setting.",
+    "advice_hi": "कम पानी में तैयार होने वाली दलहनी फसल। अधिक यूरिया डालने से पौधा बढ़ता है पर फलियां कम लगती हैं; नत्रजन नियंत्रित रखें।"
+  },
+  "Potato": {
+    "name_en": "Potato",
+    "name_hi": "आलू",
+    "scientific_name": "Solanum tuberosum",
+    "crop_type": "Tuber / Cash",
+    "primary_season": ["Rabi"],
+    "compatible_soils": ["Sandy Loam", "Loamy Soil", "Alluvial Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 180, "opt_min": 280, "opt_max": 500, "max": 750, "unit": "kg/ha" },
+      "p_range": { "min": 15, "opt_min": 25, "opt_max": 55, "max": 90, "unit": "kg/ha" },
+      "k_range": { "min": 120, "opt_min": 200, "opt_max": 400, "max": 650, "unit": "kg/ha" },
+      "ph_range": { "min": 5.0, "opt_min": 5.4, "opt_max": 6.8, "max": 7.6 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 12, "opt_min": 16, "opt_max": 24, "max": 29, "unit": "°C" },
+      "humidity_range": { "min": 45, "opt_min": 60, "opt_max": 80, "max": 92, "unit": "%" },
+      "seasonal_rainfall": { "min": 20, "opt_min": 50, "opt_max": 150, "max": 300, "unit": "mm" }
+    },
+    "market_commodity_name": "Potato",
+    "typical_yield_q_ha": 250,
+    "cost_of_cultivation_inr_ha": 55000,
+    "advice_en": "Heavy potassium feeder (MOP) essential for tuber expansion and starch quality. Sensitive to water stagnation and late blight in foggy weather.",
+    "advice_hi": "कंद के आकार और गुणवत्ता के लिए पोटाश (MOP) खाद सर्वाधिक महत्वपूर्ण है। कोहरे व अधिक नमी में झुलसा रोग से बचाव करें।"
+  },
+  "Tomato": {
+    "name_en": "Tomato",
+    "name_hi": "टमाटर",
+    "scientific_name": "Solanum lycopersicum",
+    "crop_type": "Vegetable / Horticulture",
+    "primary_season": ["Rabi", "Kharif", "Zaid"],
+    "compatible_soils": ["Loamy Soil", "Sandy Loam", "Alluvial Soil", "Red / Laterite"],
+    "soil_nutrients": {
+      "n_range": { "min": 160, "opt_min": 250, "opt_max": 450, "max": 650, "unit": "kg/ha" },
+      "p_range": { "min": 12, "opt_min": 20, "opt_max": 45, "max": 80, "unit": "kg/ha" },
+      "k_range": { "min": 100, "opt_min": 180, "opt_max": 350, "max": 600, "unit": "kg/ha" },
+      "ph_range": { "min": 5.8, "opt_min": 6.2, "opt_max": 7.2, "max": 7.8 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 14, "opt_min": 20, "opt_max": 30, "max": 36, "unit": "°C" },
+      "humidity_range": { "min": 40, "opt_min": 55, "opt_max": 75, "max": 88, "unit": "%" },
+      "seasonal_rainfall": { "min": 30, "opt_min": 80, "opt_max": 250, "max": 500, "unit": "mm" }
+    },
+    "market_commodity_name": "Tomato",
+    "typical_yield_q_ha": 300,
+    "cost_of_cultivation_inr_ha": 60000,
+    "advice_en": "Requires regular micro-irrigation. Staking with bamboo sticks prevents fruit rot and enhances marketable yield by 25%.",
+    "advice_hi": "नियमित व हल्की सिंचाई आवश्यक है। पौधों को बांस-तार से सहारा (स्टैकिंग) देने से फल सड़ने से बचते हैं और पैदावार 25% बढ़ती है।"
+  },
+  "Sugarcane": {
+    "name_en": "Sugarcane",
+    "name_hi": "गन्ना",
+    "scientific_name": "Saccharum officinarum",
+    "crop_type": "Cash / Perennial",
+    "primary_season": ["Kharif", "Rabi", "Zaid"],
+    "compatible_soils": ["Alluvial Soil", "Clay Loam", "Black Cotton Soil", "Loamy Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 200, "opt_min": 300, "opt_max": 550, "max": 850, "unit": "kg/ha" },
+      "p_range": { "min": 12, "opt_min": 22, "opt_max": 50, "max": 85, "unit": "kg/ha" },
+      "k_range": { "min": 120, "opt_min": 200, "opt_max": 400, "max": 650, "unit": "kg/ha" },
+      "ph_range": { "min": 6.0, "opt_min": 6.5, "opt_max": 7.8, "max": 8.4 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 18, "opt_min": 26, "opt_max": 36, "max": 42, "unit": "°C" },
+      "humidity_range": { "min": 50, "opt_min": 65, "opt_max": 85, "max": 95, "unit": "%" },
+      "seasonal_rainfall": { "min": 200, "opt_min": 600, "opt_max": 1500, "max": 2500, "unit": "mm" }
+    },
+    "market_commodity_name": "Sugarcane",
+    "typical_yield_q_ha": 800,
+    "cost_of_cultivation_inr_ha": 75000,
+    "advice_en": "Heavy nutrient and water demanding annual crop. Requires ring/furrow planting and trash mulching for moisture retention.",
+    "advice_hi": "अधिक पानी व पोषक तत्व चाहने वाली नकदी फसल। ट्रेंच विधि से बुवाई करें और सूखी पत्तियों की मल्चिंग से नमी संचित रखें।"
+  },
+  "Groundnut": {
+    "name_en": "Groundnut / Peanut",
+    "name_hi": "मूंगफली",
+    "scientific_name": "Arachis hypogaea",
+    "crop_type": "Oilseed / Legume",
+    "primary_season": ["Kharif", "Zaid"],
+    "compatible_soils": ["Sandy Loam", "Loamy Soil", "Red / Laterite"],
+    "soil_nutrients": {
+      "n_range": { "min": 80, "opt_min": 140, "opt_max": 280, "max": 450, "unit": "kg/ha" },
+      "p_range": { "min": 8, "opt_min": 15, "opt_max": 35, "max": 65, "unit": "kg/ha" },
+      "k_range": { "min": 70, "opt_min": 120, "opt_max": 260, "max": 450, "unit": "kg/ha" },
+      "ph_range": { "min": 6.0, "opt_min": 6.3, "opt_max": 7.4, "max": 8.0 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 20, "opt_min": 25, "opt_max": 34, "max": 39, "unit": "°C" },
+      "humidity_range": { "min": 45, "opt_min": 55, "opt_max": 75, "max": 88, "unit": "%" },
+      "seasonal_rainfall": { "min": 100, "opt_min": 300, "opt_max": 650, "max": 1100, "unit": "mm" }
+    },
+    "market_commodity_name": "Groundnut",
+    "typical_yield_q_ha": 25,
+    "cost_of_cultivation_inr_ha": 28000,
+    "advice_en": "Thrives in loose sandy loam facilitating peg penetration. Apply Gypsum (200 kg/acre) at pegging for high kernel filling.",
+    "advice_hi": "भुरभुरी बलुई दोमट मिट्टी में पेगिंग (सुइयां धंसना) आसान होती है। पेगिंग के समय 200 किग्रा/एकड़ जिप्सम डालें जिससे दाना ठोस बने।"
+  },
+  "Bajra (Pearl Millet)": {
+    "name_en": "Bajra (Pearl Millet)",
+    "name_hi": "बाजरा",
+    "scientific_name": "Pennisetum glaucum",
+    "crop_type": "Millet / Nutri-cereal",
+    "primary_season": ["Kharif"],
+    "compatible_soils": ["Sandy Loam", "Loamy Soil", "Red / Laterite", "Alluvial Soil"],
+    "soil_nutrients": {
+      "n_range": { "min": 70, "opt_min": 140, "opt_max": 260, "max": 420, "unit": "kg/ha" },
+      "p_range": { "min": 6, "opt_min": 10, "opt_max": 24, "max": 50, "unit": "kg/ha" },
+      "k_range": { "min": 50, "opt_min": 100, "opt_max": 220, "max": 380, "unit": "kg/ha" },
+      "ph_range": { "min": 6.2, "opt_min": 6.8, "opt_max": 8.2, "max": 8.8 }
+    },
+    "weather_tolerance": {
+      "temp_range": { "min": 22, "opt_min": 28, "opt_max": 38, "max": 45, "unit": "°C" },
+      "humidity_range": { "min": 25, "opt_min": 40, "opt_max": 65, "max": 80, "unit": "%" },
+      "seasonal_rainfall": { "min": 80, "opt_min": 200, "opt_max": 450, "max": 800, "unit": "mm" }
+    },
+    "market_commodity_name": "Bajra(Pearl Millet/Cumbu)",
+    "typical_yield_q_ha": 30,
+    "cost_of_cultivation_inr_ha": 18000,
+    "advice_en": "Extremely drought and heat tolerant nutri-cereal. Ideal for low-fertility rainfed arid and semi-arid tracts.",
+    "advice_hi": "सूखा व तेज गर्मी सहन करने वाला पौष्टिक मोटा अनाज। कम वर्षा वाले क्षेत्रों और हल्की मिट्टी के लिए सर्वोत्तम विकल्प है।"
+  }
+}

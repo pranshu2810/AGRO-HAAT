@@ -1,0 +1,298 @@
+<%- include('../partials/header', { page_title: 'Farmer Dashboard' }) %>
+<%- include('../partials/navbar_farmer') %>
+
+<div class="container my-4">
+    <!-- Welcome Header -->
+    <div class="row align-items-center mb-4 animate-fade-in-up">
+        <div class="col-md-8">
+            <h1 class="display-5 fw-bold mb-1" style="color: #0f3822;">
+                <span data-i18n="farmer_welcome">Welcome back</span>, <%= user ? user.fullname : 'Farmer' %>! 🌾
+            </h1>
+            <p class="text-muted fs-6 mb-0" data-i18n="farmer_subtext">Your digital agricultural command center is live across every cultivation stage.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <div class="dropdown">
+                <button class="btn btn-premium btn-premium-green shadow-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-bolt me-2"></i><span data-i18n="btn_quick_actions">Quick Actions</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 animate-fade-in-up">
+                    <li><a class="dropdown-item" href="/farmer/add_product"><i class="fas fa-plus-circle me-2 text-success"></i> <span data-i18n="action_add_product">Add New Product</span></a></li>
+                    <li><a class="dropdown-item" href="/farmer/view_orders"><i class="fas fa-tasks me-2 text-primary"></i> <span data-i18n="action_orders">Manage Orders</span></a></li>
+                    <li><a class="dropdown-item" href="/farmer/pest_detection"><i class="fas fa-shield-virus me-2 text-danger"></i> <span data-i18n="action_scan_crop">Scan Crop Disease</span></a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/farmer/weather"><i class="fas fa-cloud-sun me-2 text-info"></i> <span data-i18n="action_weather">Check Weather Radar</span></a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Glassmorphic Stats Row -->
+    <div class="row g-3 mb-5 animate-fade-in-up" style="animation-delay: 0.1s;">
+        <div class="col-6 col-lg-3">
+            <div class="glass-stat-card stat-green">
+                <div class="stat-value text-success"><%= active_products || 0 %></div>
+                <div class="stat-label" data-i18n="stat_active_products">Active Products</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="glass-stat-card stat-blue">
+                <div class="stat-value text-primary"><%= total_orders || 0 %></div>
+                <div class="stat-label" data-i18n="stat_total_orders">Total Orders</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="glass-stat-card stat-gold">
+                <div class="stat-value text-warning">₹<%= Number(monthly_revenue || 0).toFixed(2) %></div>
+                <div class="stat-label" data-i18n="stat_monthly_revenue">This Month Revenue</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="glass-stat-card stat-cyan">
+                <div class="stat-value text-info"><%= Number(products_sold || 0).toFixed(2) %></div>
+                <div class="stat-label" data-i18n="stat_units_sold">Units Sold</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage Filtering Tabs -->
+    <div class="dashboard-stage-tabs animate-fade-in-up" style="animation-delay: 0.15s;">
+        <button class="dashboard-stage-btn active" onclick="filterFarmerStage('all')">
+            <i class="fas fa-layer-group"></i> <span data-i18n="tab_all_features">All Stages</span>
+        </button>
+        <button class="dashboard-stage-btn" onclick="filterFarmerStage('pre')">
+            <i class="fas fa-seedling"></i> <span data-i18n="tab_pre_cultivation">Stage 1: Pre-Cultivation</span>
+        </button>
+        <button class="dashboard-stage-btn" onclick="filterFarmerStage('mid')">
+            <i class="fas fa-leaf"></i> <span data-i18n="tab_mid_cultivation">Stage 2: Middle of Cultivation</span>
+        </button>
+        <button class="dashboard-stage-btn" onclick="filterFarmerStage('post')">
+            <i class="fas fa-wheat-awn"></i> <span data-i18n="tab_post_cultivation">Stage 3: End of Cultivation</span>
+        </button>
+    </div>
+
+    <!-- ====================================================================
+         STAGE 1: PRE-CULTIVATION
+         ==================================================================== -->
+    <div class="dashboard-stage-block animate-fade-in-up" data-farmer-stage="pre" style="animation-delay: 0.2s;">
+        <div class="dashboard-stage-header">
+            <span class="dashboard-stage-pill"><i class="fas fa-seedling"></i> <span data-i18n="stage1_pill">Stage 01</span></span>
+            <h3 data-i18n="stage1_title">Pre-Cultivation (Planning & Land Preparation)</h3>
+            <p data-i18n="stage1_desc">Smart soil analysis, AI crop recommendations, climate outlook, and tractor/rotavator booking before sowing.</p>
+        </div>
+        <div class="row g-4">
+            <!-- 1. AI Crop Recommendation -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-emerald">
+                        <i class="fas fa-seedling"></i>
+                    </div>
+                    <h5 data-i18n="feat_crop_title">Precision Crop Suggestions</h5>
+                    <p data-i18n="feat_crop_desc">Personalized recommendations tailored to local soil composition, regional water availability, and upcoming market demand.</p>
+                    <a href="/farmer/crop_recommendation" class="btn-card-action btn-card-emerald mt-auto">
+                        <span data-i18n="btn_explore_models">Explore Models</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 2. Soil Health Analysis -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-amber">
+                        <i class="fas fa-vial"></i>
+                    </div>
+                    <h5 data-i18n="feat_soil_title">Soil Health & N-P-K Analysis</h5>
+                    <p data-i18n="feat_soil_desc">Assess soil nutrient levels, pH, and electrical conductivity with AI-driven recommendations for soil enrichment and balanced fertilization.</p>
+                    <a href="/farmer/soil_analysis" class="btn-card-action btn-card-amber mt-auto">
+                        <span data-i18n="btn_analyze_soil">Analyze Soil</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 3. Weather Forecast -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-blue">
+                        <i class="fas fa-cloud-sun-rain"></i>
+                    </div>
+                    <h5 data-i18n="feat_weather_title">Monsoon & Weather Outlook</h5>
+                    <p data-i18n="feat_weather_desc">Long-range climate projections and seasonal monsoon forecasts helping farmers identify the optimal sowing window to minimize risk.</p>
+                    <a href="/farmer/weather" class="btn-card-action btn-card-blue mt-auto">
+                        <span data-i18n="btn_check_weather">Check Weather</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 4. Machinery Rental (Tractors & Land Prep) -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-cyan">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                    <h5 data-i18n="feat_machinery_title">Land Preparation Machinery</h5>
+                    <p data-i18n="feat_machinery_desc">Book tractors, laser land levelers, and rotavators from nearby equipment owners at transparent hourly rates without middleman commissions.</p>
+                    <a href="/farmer/machinery" class="btn-card-action btn-card-cyan mt-auto">
+                        <span data-i18n="btn_find_equipment">Find Equipment</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         STAGE 2: MIDDLE OF CULTIVATION
+         ==================================================================== -->
+    <div class="dashboard-stage-block animate-fade-in-up" data-farmer-stage="mid" style="animation-delay: 0.25s;">
+        <div class="dashboard-stage-header">
+            <span class="dashboard-stage-pill"><i class="fas fa-leaf"></i> <span data-i18n="stage2_pill">Stage 02</span></span>
+            <h3 data-i18n="stage2_title">Middle of Cultivation (Crop Growth & Protection)</h3>
+            <p data-i18n="stage2_desc">Active monitoring, instant disease diagnostics, precision irrigation, and nutrient management during vegetative development.</p>
+        </div>
+        <div class="row g-4">
+            <!-- 5. Pest & Disease Alerts / Scan -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-red">
+                        <i class="fas fa-shield-virus"></i>
+                    </div>
+                    <h5 data-i18n="feat_pest_title">AI Crop Disease & Pest Scanner</h5>
+                    <p data-i18n="feat_pest_desc">Upload photos of affected leaves for instant computer-vision disease diagnosis, early blight detection, and certified treatment protocols.</p>
+                    <a href="/farmer/pest_detection" class="btn-card-action btn-card-red mt-auto">
+                        <span data-i18n="btn_scan_crop">Scan Crop</span> <i class="fas fa-camera ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 6. Expert Agronomist Support -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-purple">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h5 data-i18n="feat_alerts_title">Growth Tracking & Advisory Alerts</h5>
+                    <p data-i18n="feat_alerts_desc">Real-time agronomic alerts and localized pest outbreak warnings sent straight to WhatsApp to keep crops healthy and productive.</p>
+                    <a href="/farmer/support" class="btn-card-action btn-card-emerald mt-auto">
+                        <span data-i18n="btn_ask_expert">Ask Expert</span> <i class="fas fa-comment-dots ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 7. Smart Irrigation Radar -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-blue">
+                        <i class="fas fa-droplet"></i>
+                    </div>
+                    <h5 data-i18n="feat_irrigation_title">Smart Irrigation Scheduling</h5>
+                    <p data-i18n="feat_irrigation_desc">Weather-linked moisture alerts preventing both over-watering and moisture stress while conserving groundwater resources.</p>
+                    <a href="/farmer/weather" class="btn-card-action btn-card-blue mt-auto">
+                        <span data-i18n="btn_irrigation_plan">Irrigation Plan</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 8. Crop Growth Advisory -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-amber">
+                        <i class="fas fa-spray-can-sparkles"></i>
+                    </div>
+                    <h5 data-i18n="feat_nutrient_title">Nutrient & Bio-Fertilizer Guidance</h5>
+                    <p data-i18n="feat_nutrient_desc">Calculated dosage recommendations for organic manures and fertilizers during key vegetative and flowering phases.</p>
+                    <a href="/farmer/soil_analysis" class="btn-card-action btn-card-amber mt-auto">
+                        <span data-i18n="btn_view_advisory">View Advisory</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================================================
+         STAGE 3: END OF CULTIVATION
+         ==================================================================== -->
+    <div class="dashboard-stage-block animate-fade-in-up" data-farmer-stage="post" style="animation-delay: 0.3s;">
+        <div class="dashboard-stage-header">
+            <span class="dashboard-stage-pill"><i class="fas fa-wheat-awn"></i> <span data-i18n="stage3_pill">Stage 03</span></span>
+            <h3 data-i18n="stage3_title">End of Cultivation (Harvest, Packaging & Direct Sales)</h3>
+            <p data-i18n="stage3_desc">Harvest machinery booking, damage-free standard packaging, real mandi rates, and direct consumer marketplace.</p>
+        </div>
+        <div class="row g-4">
+            <!-- 9. Market Price Updates -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-cyan">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5 data-i18n="feat_mandi_title">Real-Time Mandi Price Benchmarks</h5>
+                    <p data-i18n="feat_mandi_desc">Live APMC mandi rates updated daily so farmers negotiate and sell their harvest from a position of data-backed confidence.</p>
+                    <a href="/farmer/market_prices" class="btn-card-action btn-card-blue mt-auto">
+                        <span data-i18n="btn_view_rates">View Rates</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 10. Sell Harvest (Manage Inventory) -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-emerald">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h5 data-i18n="feat_market_title">Direct Farmer Marketplace</h5>
+                    <p data-i18n="feat_market_desc">Sell directly to retail families and subscribers with prompt digital payouts, guaranteed fair pricing, and 0% commission deduction.</p>
+                    <a href="/farmer/manage_products" class="btn-card-action btn-card-emerald mt-auto">
+                        <span data-i18n="btn_manage_inv">Manage Inventory</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 11. Manage Orders & Dispatches -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-amber">
+                        <i class="fas fa-receipt"></i>
+                    </div>
+                    <h5 data-i18n="feat_pkg_title">Smart Standard Packaging</h5>
+                    <p data-i18n="feat_pkg_desc">Small-sized eco-crates (5kg, 10kg, 25kg) that protect produce from transit spoilage and make it kitchen-ready for urban consumers.</p>
+                    <a href="/farmer/view_orders" class="btn-card-action btn-card-amber mt-auto">
+                        <span data-i18n="btn_manage_orders">Manage Orders</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 12. Harvester & Thresher Equipment -->
+            <div class="col-md-6 col-lg-3">
+                <div class="dashboard-feature-card">
+                    <div class="dashboard-card-icon icon-purple">
+                        <i class="fas fa-truck-pickup"></i>
+                    </div>
+                    <h5 data-i18n="feat_harvester_title">Harvester & Thresher Rental</h5>
+                    <p data-i18n="feat_harvester_desc">Rent combine harvesters and threshers during peak harvest season without middleman delays or inflated pricing.</p>
+                    <a href="/farmer/machinery" class="btn-card-action btn-card-emerald mt-auto">
+                        <span data-i18n="btn_rent_harvester">Rent Harvester</span> <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterFarmerStage(stage) {
+    const blocks = document.querySelectorAll('.dashboard-stage-block');
+    const buttons = document.querySelectorAll('.dashboard-stage-btn');
+
+    buttons.forEach(btn => btn.classList.remove('active'));
+    if (event && event.currentTarget) {
+        event.currentTarget.classList.add('active');
+    }
+
+    blocks.forEach(block => {
+        if (stage === 'all' || block.getAttribute('data-farmer-stage') === stage) {
+            block.classList.remove('hidden-stage');
+        } else {
+            block.classList.add('hidden-stage');
+        }
+    });
+}
+</script>
+
+<%- include('../partials/footer') %>

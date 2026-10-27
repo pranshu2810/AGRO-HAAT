@@ -1,0 +1,1022 @@
+<%- include('../partials/header', { page_title: 'Agricultural Weather & Intelligence' }) %>
+<% if (user && user.role === 'Farmer') { %>
+    <%- include('../partials/navbar_farmer') %>
+<% } else { %>
+    <%- include('../partials/navbar_customer') %>
+<% } %>
+
+<!-- Chart.js for Hourly & Multi-Day Trends -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    :root {
+        --primary-emerald: #10b981;
+        --primary-dark: #064e3b;
+        --accent-blue: #2563eb;
+        --accent-sky: #0284c7;
+        --accent-amber: #d97706;
+        --accent-rose: #e11d48;
+        --surface-card: #ffffff;
+        --surface-subtle: #f8fafc;
+        --border-color: #e2e8f0;
+    }
+
+    body {
+        background-color: #f1f5f9;
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, sans-serif;
+        color: #1e293b;
+    }
+
+    .weather-hero {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+        border-radius: 24px;
+        color: white;
+        padding: 2.2rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 12px 36px rgba(6, 78, 59, 0.18);
+    }
+
+    .weather-hero::after {
+        content: '';
+        position: absolute;
+        top: -40%;
+        right: -10%;
+        width: 380px;
+        height: 380px;
+        background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .glass-tile {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .glass-tile:hover {
+        box-shadow: 0 8px 26px rgba(15, 23, 42, 0.07);
+    }
+
+    .metric-badge {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        border-radius: 999px;
+        padding: 5px 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .metric-badge-blue {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+    }
+
+    .metric-badge-green {
+        background: #ecfdf5;
+        color: #047857;
+        border: 1px solid #a7f3d0;
+    }
+
+    .metric-badge-amber {
+        background: #fffbeb;
+        color: #b45309;
+        border: 1px solid #fde68a;
+    }
+
+    .metric-badge-rose {
+        background: #fff1f2;
+        color: #be123c;
+        border: 1px solid #fecdd3;
+    }
+
+    .crop-pill-btn {
+        background: #ffffff;
+        border: 1.5px solid var(--border-color);
+        border-radius: 999px;
+        padding: 6px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #475569;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+    }
+
+    .crop-pill-btn:hover {
+        border-color: var(--primary-emerald);
+        color: var(--primary-dark);
+        background: #ecfdf5;
+    }
+
+    .crop-pill-btn.active {
+        background: var(--primary-dark);
+        color: #ffffff;
+        border-color: var(--primary-dark);
+        box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25);
+    }
+
+    .soil-gauge-bar {
+        height: 12px;
+        border-radius: 999px;
+        background: #e2e8f0;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .soil-gauge-fill {
+        height: 100%;
+        border-radius: 999px;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .forecast-card-mini {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 14px 10px;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+    .forecast-card-mini:hover {
+        background: #ffffff;
+        border-color: var(--primary-emerald);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.12);
+    }
+
+    .disclaimer-banner {
+        background: #f8fafc;
+        border-left: 4px solid #64748b;
+        border-radius: 12px;
+        padding: 12px 18px;
+        font-size: 0.8rem;
+        color: #475569;
+    }
+</style>
+
+<div class="container-fluid px-lg-5 py-4">
+    <!-- Top Bar: Title & GPS / Manual Location Controls -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="metric-badge metric-badge-green"><i class="fas fa-satellite-dish"></i> Agricultural Weather 2.0</span>
+                <span class="metric-badge metric-badge-blue" id="providerBadge"><i class="fas fa-shield-alt"></i> <%= weather.provider_badge %></span>
+            </div>
+            <h2 class="fw-bold mb-0 text-dark">Smart Agricultural Weather & Advisory Console 🌦️</h2>
+            <p class="text-muted small mb-0">High-resolution multi-layer soil hydrology, FAO-56 Penman-Monteith crop transpiration, and connected AGMARKNET mandi rates.</p>
+        </div>
+
+        <!-- Location Actions -->
+        <div class="d-flex flex-wrap align-items-center gap-2">
+            <button type="button" id="btnGpsLocate" class="btn btn-success rounded-pill px-3 py-2 fw-semibold shadow-sm d-flex align-items-center gap-2">
+                <i class="fas fa-crosshairs text-warning" id="gpsIcon"></i>
+                <span id="gpsBtnText">Detect Farm Location (GPS)</span>
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-dark rounded-pill px-3 py-2 fw-semibold dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="fas fa-map-marker-alt text-danger me-1"></i> <span id="currentLocDisplay"><%= initialLocation.town %>, <%= initialLocation.state %></span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0" style="width: 320px; border-radius: 16px;">
+                    <h6 class="fw-bold text-dark mb-2">Change Agricultural Location</h6>
+                    <p class="text-muted small mb-3">Search any Indian district, tehsil, or mandi town:</p>
+                    <div class="input-group mb-3">
+                        <input type="text" id="manualSearchInput" class="form-control rounded-start-pill" placeholder="e.g. Karnal, Ludhiana, Indore...">
+                        <button class="btn btn-primary rounded-end-pill" type="button" id="btnManualSearch"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div id="searchResultsList" class="list-group list-group-flush mb-2 small" style="max-height: 180px; overflow-y: auto;"></div>
+                    <div class="border-top pt-2">
+                        <small class="text-muted fw-bold d-block mb-1">Quick Agricultural Presets:</small>
+                        <div class="d-flex flex-wrap gap-1">
+                            <span class="badge bg-light text-dark border preset-chip" style="cursor: pointer;" onclick="loadDistrictPreset('Karnal', 'Haryana', 29.6857, 76.9905)">Karnal (HR)</span>
+                            <span class="badge bg-light text-dark border preset-chip" style="cursor: pointer;" onclick="loadDistrictPreset('Ludhiana', 'Punjab', 30.9010, 75.8573)">Ludhiana (PB)</span>
+                            <span class="badge bg-light text-dark border preset-chip" style="cursor: pointer;" onclick="loadDistrictPreset('Indore', 'Madhya Pradesh', 22.7196, 75.8577)">Indore (MP)</span>
+                            <span class="badge bg-light text-dark border preset-chip" style="cursor: pointer;" onclick="loadDistrictPreset('Nagpur', 'Maharashtra', 21.1458, 79.0882)">Nagpur (MH)</span>
+                            <span class="badge bg-light text-dark border preset-chip" style="cursor: pointer;" onclick="loadDistrictPreset('Nashik', 'Maharashtra', 19.9975, 73.7898)">Nashik (MH)</span>
+                            <span class="badge bg-light text-dark border preset-chip" style="cursor: pointer;" onclick="loadDistrictPreset('Varanasi', 'Uttar Pradesh', 25.3176, 82.9739)">Varanasi (UP)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="btnRefreshWeather" class="btn btn-outline-secondary rounded-circle" style="width: 42px; height: 42px;" title="Refresh Weather Data">
+                <i class="fas fa-sync-alt" id="refreshIcon"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- GPS / Geolocation Status Notice Banner -->
+    <div id="locationNotice" class="alert alert-light border shadow-sm rounded-4 p-3 mb-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <div class="rounded-circle bg-success bg-opacity-10 p-2 text-success">
+                <i class="fas fa-location-arrow fa-lg"></i>
+            </div>
+            <div>
+                <strong class="text-dark" id="locTitleText"><%= initialLocation.formatted_address %></strong>
+                <div class="small text-muted" id="locSubText">
+                    Coordinates: <%= initialLocation.latitude.toFixed(4) %>°N, <%= initialLocation.longitude.toFixed(4) %>°E • 
+                    <span id="locModeText"><%= initialLocation.is_gps ? 'Live GPS Location' : 'Manual / District Reference Station' %></span> • 
+                    Elevation: <%= weather.location.elevation_meters %>m MSL
+                </div>
+            </div>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <span class="metric-badge metric-badge-green"><i class="fas fa-check-circle"></i> Live Station Active</span>
+            <div class="text-muted extra-small mt-1" id="lastUpdatedDisplay">Updated: <%= new Date(weather.last_updated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) %></div>
+        </div>
+    </div>
+
+    <!-- Crop & Growth Stage Control Bar -->
+    <div class="glass-tile p-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold text-dark small"><i class="fas fa-seedling text-success me-1"></i>Select Your Crop:</span>
+                <div class="d-flex flex-wrap gap-2" id="cropPillsContainer">
+                    <% Object.keys(cropDatabase).forEach(cKey => { 
+                        const cropItem = cropDatabase[cKey];
+                        const isActive = cKey === selectedCrop;
+                    %>
+                        <button type="button" class="crop-pill-btn <%= isActive ? 'active' : '' %>" onclick="switchCrop('<%= cKey %>')">
+                            <%= cropItem.name.split(' ')[0] %>
+                        </button>
+                    <% }); %>
+                </div>
+            </div>
+
+            <!-- Growth Stage Selector -->
+            <div class="d-flex align-items-center gap-2">
+                <label class="form-label mb-0 small fw-bold text-dark text-nowrap"><i class="fas fa-layer-group text-primary me-1"></i>Growth Stage:</label>
+                <select id="stageSelector" class="form-select form-select-sm rounded-pill fw-semibold shadow-sm" style="min-width: 240px;" onchange="switchStage(this.value)">
+                    <% 
+                    const curCropData = cropDatabase[selectedCrop] || cropDatabase.wheat;
+                    Object.keys(curCropData.stages).forEach(sKey => {
+                        const st = curCropData.stages[sKey];
+                        const isStActive = sKey === selectedStage;
+                    %>
+                        <option value="<%= sKey %>" <%= isStActive ? 'selected' : '' %>>
+                            <%= st.label %> (Kc: <%= st.kc %>)
+                        </option>
+                    <% }); %>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Grid: Weather Hero & Soil Intelligence -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Current Weather Conditions Hero -->
+        <div class="col-lg-7">
+            <div class="weather-hero h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="badge bg-white text-dark rounded-pill px-3 py-1 fw-bold extra-small mb-2 shadow-sm">
+                                <i class="fas fa-cloud-sun text-warning me-1"></i> Real-Time Weather
+                            </span>
+                            <h4 class="fw-bold mb-0" id="heroLocationName"><%= initialLocation.town %>, <%= initialLocation.district %></h4>
+                            <small class="opacity-75" id="heroConditionDetail"><%= weather.current.condition %></small>
+                        </div>
+                        <div class="text-end">
+                            <i class="fas fa-<%= weather.current.icon %> text-warning" style="font-size: 4rem;" id="heroIcon"></i>
+                        </div>
+                    </div>
+
+                    <div class="d-flex align-items-baseline gap-3 my-2">
+                        <h1 class="display-2 fw-bolder mb-0 text-white" id="heroTemp"><%= weather.current.temperature %>°C</h1>
+                        <div>
+                            <div class="fs-5 opacity-90 fw-semibold" id="heroApparent">Feels like <%= weather.current.apparent_temperature %>°C</div>
+                            <div class="small opacity-75" id="heroMinMax">
+                                Day Max: <%= weather.daily[0] ? weather.daily[0].max_temp : weather.current.temperature + 2 %>°C • 
+                                Night Min: <%= weather.daily[0] ? weather.daily[0].min_temp : weather.current.temperature - 5 %>°C
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4 Bottom Indicators -->
+                <div class="row g-2 pt-3 border-top border-white border-opacity-25 mt-3">
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.12);">
+                            <small class="opacity-75 d-block"><i class="fas fa-tint me-1"></i>Humidity</small>
+                            <span class="fs-5 fw-bold" id="heroHumidity"><%= weather.current.humidity %>%</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.12);">
+                            <small class="opacity-75 d-block"><i class="fas fa-wind me-1"></i>Wind Speed</small>
+                            <span class="fs-5 fw-bold" id="heroWind"><%= weather.current.wind_speed %> km/h</span>
+                            <span class="extra-small opacity-75 d-block" id="heroWindDir"><%= weather.current.wind_direction_cardinal %></span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.12);">
+                            <small class="opacity-75 d-block"><i class="fas fa-cloud-rain me-1"></i>Rain Today</small>
+                            <span class="fs-5 fw-bold" id="heroRain"><%= weather.current.precipitation %> mm</span>
+                            <span class="extra-small opacity-75 d-block" id="heroRainProb">Chance: <%= weather.agricultural_variables.today_rain_probability %>%</span>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <div class="p-2 rounded-3" style="background: rgba(255,255,255,0.12);">
+                            <small class="opacity-75 d-block"><i class="fas fa-gauge-high me-1"></i>Peak Gusts</small>
+                            <span class="fs-5 fw-bold" id="heroGusts"><%= weather.current.wind_gusts %> km/h</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Agricultural Hydrology & Soil Conditions Card -->
+        <div class="col-lg-5">
+            <div class="glass-tile p-4 h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-mountain-sun text-success me-2"></i>Soil Hydrology & ET₀</h5>
+                        <span class="metric-badge metric-badge-green"><i class="fas fa-microscope"></i> FAO-56 Penman-Monteith</span>
+                    </div>
+
+                    <!-- Root Zone Soil Moisture Meter -->
+                    <div class="p-3 bg-light rounded-4 mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small fw-bold text-dark">Root-Zone Soil Moisture (0-9cm):</span>
+                            <span class="fw-bold text-success fs-5" id="soilMoistureValue"><%= weather.agricultural_variables.root_zone_moisture_percentage %>%</span>
+                        </div>
+                        <div class="soil-gauge-bar mb-2">
+                            <div class="soil-gauge-fill bg-success" id="soilMoistureBar" style="width: <%= Math.min(100, weather.agricultural_variables.root_zone_moisture_percentage * 2.5) %>%;"></div>
+                        </div>
+                        <div class="d-flex justify-content-between extra-small text-muted">
+                            <span>Wilting Point (&lt;15%)</span>
+                            <span>Optimal RAW (20-30%)</span>
+                            <span>Saturation (&gt;35%)</span>
+                        </div>
+                    </div>
+
+                    <!-- Multi-depth Soil & Solar Grid -->
+                    <div class="row g-2 small">
+                        <div class="col-6">
+                            <div class="p-2 border rounded-3 bg-white">
+                                <span class="text-muted d-block extra-small">Topsoil Temp (0cm)</span>
+                                <strong class="text-dark fs-6" id="soilTemp0"><%= Math.round(weather.agricultural_variables.soil_temperature_0cm) %>°C</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded-3 bg-white">
+                                <span class="text-muted d-block extra-small">Root Depth Temp (6cm)</span>
+                                <strong class="text-dark fs-6" id="soilTemp6"><%= Math.round(weather.agricultural_variables.soil_temperature_6cm) %>°C</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded-3 bg-white">
+                                <span class="text-muted d-block extra-small">Reference Evapotranspiration (ET₀)</span>
+                                <strong class="text-primary fs-6" id="et0Display"><%= weather.agricultural_variables.et0_fao_evapotranspiration_daily %> mm/day</strong>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="p-2 border rounded-3 bg-white">
+                                <span class="text-muted d-block extra-small">48h Rain Forecast Total</span>
+                                <strong class="text-dark fs-6" id="rain48hDisplay"><%= weather.agricultural_variables.accumulated_rain_48h %> mm</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center extra-small text-muted">
+                    <span><i class="fas fa-sun text-warning me-1"></i>Max UV Index: <strong><%= weather.agricultural_variables.uv_index %></strong></span>
+                    <span><i class="fas fa-layer-group text-primary me-1"></i>Deep Moisture (3-9cm): <strong><%= (weather.agricultural_variables.soil_moisture_3_to_9cm * 100).toFixed(1) %>%</strong></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agricultural Intelligence & Actionable Advisories Row -->
+    <div class="row g-4 mb-4">
+        <!-- 1. Precision Irrigation Guidance Card -->
+        <div class="col-md-6 col-xl-4">
+            <div class="glass-tile p-4 h-100 border-start border-4 border-<%= intelligence.irrigation_guidance.priority %>">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-faucet-drip text-primary me-2"></i>Irrigation Guidance</h6>
+                    <span class="metric-badge metric-badge-<%= intelligence.irrigation_guidance.priority %>" id="irrigBadge">
+                        <%= intelligence.irrigation_guidance.status %>
+                    </span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2" id="irrigActionText"><%= intelligence.irrigation_guidance.action %></h5>
+                <p class="text-muted small mb-3" id="irrigActionHi"><%= intelligence.irrigation_guidance.action_hi %></p>
+                <div class="p-3 bg-light rounded-3 small text-muted mb-3" id="irrigExplanation">
+                    <%= intelligence.irrigation_guidance.explanation %>
+                </div>
+                <div class="d-flex justify-content-between align-items-center extra-small text-muted mt-auto pt-2 border-top">
+                    <span>Crop Need (ETc): <strong class="text-dark" id="etcDisplay"><%= intelligence.crop_water_balance.etc_crop_water_need_mm_day %> mm/d</strong></span>
+                    <span>Recommended Depth: <strong class="text-primary" id="irrigDepthDisplay"><%= intelligence.irrigation_guidance.recommended_depth_mm %> mm</strong></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Chemical Spraying Window Card -->
+        <div class="col-md-6 col-xl-4">
+            <div class="glass-tile p-4 h-100 border-start border-4 border-<%= intelligence.spray_window_advisory.status === 'FAVORABLE' ? 'success' : 'warning' %>">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-spray-can text-success me-2"></i>Spraying Window Advisory</h6>
+                    <span class="metric-badge metric-badge-<%= intelligence.spray_window_advisory.status === 'FAVORABLE' ? 'green' : 'amber' %>" id="sprayBadge">
+                        <%= intelligence.spray_window_advisory.status %>
+                    </span>
+                </div>
+                <h5 class="fw-bold text-dark mb-2" id="sprayBestSlot">
+                    <%= intelligence.spray_window_advisory.best_window ? 'Optimal Window: ' + intelligence.spray_window_advisory.best_window : 'No Safe Window Today' %>
+                </h5>
+                <p class="text-muted small mb-3" id="sprayText"><%= intelligence.spray_window_advisory.recommendation %></p>
+                <div class="p-2 border rounded-3 bg-light extra-small text-muted mb-2">
+                    <strong class="text-dark d-block mb-1">Standard Safe Spraying Rules:</strong>
+                    • Wind Speed &lt; 15 km/h (Prevents droplet drift)<br>
+                    • Rain Probability &lt; 20% (Prevents chemical wash-off)<br>
+                    • Relative Humidity 50% - 75% (Optimum foliar absorption)
+                </div>
+                <div class="extra-small text-muted text-end mt-auto pt-2 border-top" id="sprayHoursDisplay">
+                    Safe Hours Available: <strong><%= intelligence.spray_window_advisory.safe_hours_count %> Hours</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Weather Risks & Crop Alerts Card -->
+        <div class="col-xl-4">
+            <div class="glass-tile p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-dark mb-0"><i class="fas fa-triangle-exclamation text-warning me-2"></i>Agronomic Alerts (<span id="alertCount"><%= intelligence.active_alerts.length %></span>)</h6>
+                    <span class="badge bg-warning bg-opacity-10 text-dark border extra-small">Risk Engine</span>
+                </div>
+
+                <div id="alertsContainer" style="max-height: 250px; overflow-y: auto;">
+                    <% if (intelligence.active_alerts.length === 0) { %>
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-shield-heart fa-3x text-success opacity-50 mb-2"></i>
+                            <h6 class="fw-bold text-dark">No Severe Weather Risks</h6>
+                            <p class="extra-small mb-0">Current atmospheric parameters are within safe agronomic limits for <%= intelligence.selected_crop.name %>.</p>
+                        </div>
+                    <% } else { %>
+                        <% intelligence.active_alerts.forEach(alert => { %>
+                            <div class="alert alert-<%= alert.type %> border-0 rounded-3 p-3 mb-2 small">
+                                <div class="fw-bold mb-1"><i class="fas fa-<%= alert.icon %> me-1"></i> <%= alert.title %></div>
+                                <div class="extra-small mb-1"><%= alert.message %></div>
+                                <div class="extra-small text-muted fst-italic">Basis: <%= alert.scientific_basis %></div>
+                            </div>
+                        <% }); %>
+                    <% } %>
+                </div>
+
+                <div class="mt-auto pt-2 border-top extra-small text-muted">
+                    <i class="fas fa-info-circle me-1"></i> Thresholds tailored for: <strong id="activeCropText"><%= intelligence.selected_crop.name %></strong> (<%= intelligence.selected_crop.stage_label %>)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hourly 24h Interactive Chart & 7-Day Forecast Grid -->
+    <div class="row g-4 mb-4">
+        <!-- 24-Hour Trend Chart -->
+        <div class="col-lg-8">
+            <div class="glass-tile p-4 h-100">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-chart-line text-primary me-2"></i>24-Hour Micro-Climate & Rain Trajectory</h5>
+                        <small class="text-muted">Hourly temperature, precipitation probability, and wind velocity.</small>
+                    </div>
+                    <div class="d-flex gap-2 extra-small">
+                        <span class="badge bg-primary px-2 py-1">Temp (°C)</span>
+                        <span class="badge bg-info text-dark px-2 py-1">Rain Prob (%)</span>
+                        <span class="badge bg-secondary px-2 py-1">Wind (km/h)</span>
+                    </div>
+                </div>
+                <div style="height: 280px; position: relative;">
+                    <canvas id="hourlyWeatherChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7-Day Agricultural Forecast Column -->
+        <div class="col-lg-4">
+            <div class="glass-tile p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-dark mb-0"><i class="fas fa-calendar-week text-success me-2"></i>7-Day Outlook</h5>
+                    <span class="extra-small text-muted">Max/Min & Rain</span>
+                </div>
+                <div class="d-flex flex-column gap-2" id="dailyForecastList" style="max-height: 290px; overflow-y: auto;">
+                    <% weather.daily.forEach(day => { %>
+                        <div class="d-flex justify-content-between align-items-center p-2 rounded-3 bg-light small">
+                            <div style="min-width: 80px;">
+                                <strong class="text-dark d-block"><%= day.day_name %></strong>
+                                <span class="extra-small text-muted"><%= day.date_display %></span>
+                            </div>
+                            <div class="text-center">
+                                <i class="fas fa-<%= day.icon %> text-warning fs-5"></i>
+                                <span class="d-block extra-small text-muted text-truncate" style="max-width: 100px;"><%= day.condition.split(' ')[0] %></span>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-dark"><%= day.max_temp %>°</span> / <span class="text-muted"><%= day.min_temp %>°</span>
+                                <div class="extra-small text-info"><i class="fas fa-droplet"></i> <%= day.rain_sum %>mm (<%= day.rain_probability %>%)</div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connected AGMARKNET 2.0 Market Price Intelligence Card -->
+    <div class="glass-tile p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+                <span class="metric-badge metric-badge-amber mb-1"><i class="fas fa-store"></i> AGMARKNET 2.0 Integration</span>
+                <h5 class="fw-bold text-dark mb-0">Mandi Price & Transport Net Realization Comparison 📈</h5>
+                <small class="text-muted">Compares local vs regional terminal mandi modal prices for <strong id="mandiCropName"><%= intelligence.selected_crop.name %></strong> in <%= initialLocation.district %>.</small>
+            </div>
+            <div class="text-end extra-small text-muted">
+                <span class="badge bg-light text-dark border"><i class="fas fa-clock me-1"></i> Daily Post-Auction Data</span>
+                <div class="mt-1">Source: Directorate of Marketing & Inspection (DMI, GoI)</div>
+            </div>
+        </div>
+
+        <div id="mandiComparisonContainer">
+            <% if (!market.available || market.nearby_mandis.length === 0) { %>
+                <div class="p-3 bg-light rounded-4 text-center text-muted">
+                    <i class="fas fa-circle-info me-1"></i> No active auction prices reported today for <%= market.commodity %> in <%= initialLocation.district %> mandis. Check nearby district mandis in the Market Intelligence module.
+                    <div class="mt-2">
+                        <a href="/market" class="btn btn-sm btn-outline-success rounded-pill px-3">Open Full Mandi Intelligence</a>
+                    </div>
+                </div>
+            <% } else { %>
+                <div class="row g-3">
+                    <% market.nearby_mandis.forEach(m => { %>
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 rounded-4 border h-100 <%= m.is_highest_net ? 'bg-success bg-opacity-10 border-success' : 'bg-white' %> position-relative">
+                                <% if (m.is_highest_net) { %>
+                                    <span class="badge bg-success position-absolute top-0 end-0 m-2 extra-small">Best Net Profit</span>
+                                <% } %>
+                                <h6 class="fw-bold text-dark mb-1 text-truncate" title="<%= m.market_name %>"><%= m.market_name %></h6>
+                                <span class="extra-small text-muted d-block mb-2"><%= m.district %>, <%= m.state %></span>
+                                
+                                <div class="mb-2">
+                                    <small class="text-muted extra-small">Mandi Modal Price:</small>
+                                    <div class="fs-5 fw-bold text-dark">₹<%= m.modal_price %> <span class="extra-small text-muted fw-normal">/ Qtl</span></div>
+                                </div>
+
+                                <div class="d-flex justify-content-between extra-small text-muted border-top pt-2">
+                                    <span>Est. Distance:</span>
+                                    <strong>~<%= m.estimated_distance_km %> km</strong>
+                                </div>
+                                <div class="d-flex justify-content-between extra-small text-muted">
+                                    <span>Est. Freight:</span>
+                                    <span class="text-danger">-₹<%= m.estimated_freight_per_qtl %>/Qtl</span>
+                                </div>
+                                <div class="d-flex justify-content-between extra-small pt-1 border-top mt-1">
+                                    <strong class="text-dark">Net Realization:</strong>
+                                    <strong class="text-success fs-6">₹<%= m.net_realization_per_qtl %></strong>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <!-- Scientific Decision Support & Source Attribution Banner -->
+    <div class="disclaimer-banner d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <strong class="text-dark d-block"><i class="fas fa-scale-balanced me-1"></i> Scientific Agronomic Decision Support Disclaimer:</strong>
+            All irrigation depths, spray windows, and risk alerts are computed using standard FAO-56 Penman-Monteith crop coefficients ($K_c$) and high-resolution numerical weather models. They serve as advisory decision support. Farmers are advised to cross-examine field conditions and consult local Krishi Vigyan Kendra (KVK) bulletins before heavy investments.
+        </div>
+        <div class="text-nowrap extra-small text-muted">
+            Observed & NWP Data: <strong>Open-Meteo & IMD Framework</strong> • Mandi Data: <strong>AGMARKNET GoI</strong>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer') %>
+
+<!-- Client-side Interactive Dashboard Controller -->
+<script>
+    // State management
+    let currentLat = <%= initialLocation.latitude %>;
+    let currentLon = <%= initialLocation.longitude %>;
+    let currentState = '<%= initialLocation.state %>';
+    let currentDistrict = '<%= initialLocation.district %>';
+    let currentTown = '<%= initialLocation.town %>';
+    let activeCrop = '<%= selectedCrop %>';
+    let activeStage = '<%= selectedStage %>';
+
+    // Store raw hourly data for Chart.js
+    let hourlyTimes = <%- JSON.stringify(weather.hourly.map(h => h.hour_display)) %>;
+    let hourlyTemps = <%- JSON.stringify(weather.hourly.map(h => h.temperature)) %>;
+    let hourlyRainProb = <%- JSON.stringify(weather.hourly.map(h => h.rain_probability)) %>;
+    let hourlyWinds = <%- JSON.stringify(weather.hourly.map(h => h.wind_speed)) %>;
+
+    let weatherChart = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initWeatherChart();
+
+        // Bind GPS detect button
+        document.getElementById('btnGpsLocate').addEventListener('click', requestBrowserGeolocation);
+        document.getElementById('btnRefreshWeather').addEventListener('click', () => fetchIntelligenceData());
+
+        // Manual search input
+        const searchInput = document.getElementById('manualSearchInput');
+        const searchBtn = document.getElementById('btnManualSearch');
+        searchBtn.addEventListener('click', () => executeManualSearch(searchInput.value));
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') executeManualSearch(searchInput.value);
+        });
+    });
+
+    /**
+     * Initializes the 24-hour dual-axis interactive weather chart.
+     */
+    function initWeatherChart() {
+        const ctx = document.getElementById('hourlyWeatherChart').getContext('2d');
+        if (weatherChart) weatherChart.destroy();
+
+        weatherChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: hourlyTimes,
+                datasets: [
+                    {
+                        label: 'Temperature (°C)',
+                        data: hourlyTemps,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.08)',
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'yTemp',
+                        borderWidth: 2.5,
+                        pointRadius: 2,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'Rain Probability (%)',
+                        data: hourlyRainProb,
+                        type: 'bar',
+                        backgroundColor: 'rgba(2, 132, 199, 0.45)',
+                        borderRadius: 4,
+                        yAxisID: 'yRain',
+                        barPercentage: 0.6
+                    },
+                    {
+                        label: 'Wind Speed (km/h)',
+                        data: hourlyWinds,
+                        borderColor: '#94a3b8',
+                        borderDash: [4, 4],
+                        fill: false,
+                        tension: 0.3,
+                        yAxisID: 'yTemp',
+                        borderWidth: 1.5,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { maxTicksLimit: 12, font: { size: 10 } }
+                    },
+                    yTemp: {
+                        type: 'linear',
+                        position: 'left',
+                        title: { display: true, text: '°C / km/h', font: { size: 10 } },
+                        grid: { color: '#f1f5f9' },
+                        ticks: { font: { size: 10 } }
+                    },
+                    yRain: {
+                        type: 'linear',
+                        position: 'right',
+                        max: 100,
+                        min: 0,
+                        title: { display: true, text: 'Rain %', font: { size: 10 } },
+                        grid: { display: false },
+                        ticks: { stepSize: 25, font: { size: 10 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#0f172a',
+                        titleFont: { size: 12, weight: 'bold' },
+                        bodyFont: { size: 11 },
+                        padding: 10,
+                        cornerRadius: 8
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Browser GPS Geolocation Request with graceful fallback
+     */
+    function requestBrowserGeolocation() {
+        const btnText = document.getElementById('gpsBtnText');
+        const icon = document.getElementById('gpsIcon');
+
+        if (!navigator.geolocation) {
+            alert('Geolocation is not supported by your browser. Please select your district from the dropdown.');
+            return;
+        }
+
+        btnText.innerText = 'Acquiring GPS fix...';
+        icon.className = 'fas fa-spinner fa-spin text-warning';
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                currentLat = position.coords.latitude;
+                currentLon = position.coords.longitude;
+                btnText.innerText = 'GPS Located!';
+                icon.className = 'fas fa-check-circle text-success';
+
+                try {
+                    // Reverse geocode to get official Indian village/district/state
+                    const geoRes = await fetch(`/api/weather/geocode?lat=${currentLat}&lon=${currentLon}`);
+                    const geoData = await geoRes.json();
+
+                    if (geoData.success && geoData.location) {
+                        const loc = geoData.location;
+                        currentState = loc.state;
+                        currentDistrict = loc.district;
+                        currentTown = loc.town || loc.village;
+
+                        document.getElementById('currentLocDisplay').innerText = `${currentTown}, ${currentState}`;
+                        document.getElementById('locTitleText').innerText = loc.formatted_address;
+                        document.getElementById('locSubText').innerText = `Coordinates: ${currentLat.toFixed(4)}°N, ${currentLon.toFixed(4)}°E • Live GPS Location`;
+                        document.getElementById('locModeText').innerText = 'Live GPS Location (High Accuracy)';
+                    }
+                } catch (e) {
+                    console.warn('Geocode API notice:', e);
+                }
+
+                // Refresh weather and intelligence
+                fetchIntelligenceData();
+
+                setTimeout(() => {
+                    btnText.innerText = 'Detect Farm Location (GPS)';
+                    icon.className = 'fas fa-crosshairs text-warning';
+                }, 4000);
+            },
+            (error) => {
+                icon.className = 'fas fa-exclamation-triangle text-danger';
+                let reason = 'GPS permission denied. Please choose your district manually from the selector.';
+                if (error.code === error.TIMEOUT) reason = 'GPS request timed out. Using current reference location.';
+                alert(reason);
+                btnText.innerText = 'Detect Farm Location (GPS)';
+                icon.className = 'fas fa-crosshairs text-warning';
+            },
+            { timeout: 10000, enableHighAccuracy: true }
+        );
+    }
+
+    /**
+     * Manual Location Preset Loader
+     */
+    function loadDistrictPreset(districtName, stateName, lat, lon) {
+        currentLat = lat;
+        currentLon = lon;
+        currentState = stateName;
+        currentDistrict = districtName;
+        currentTown = districtName;
+
+        document.getElementById('currentLocDisplay').innerText = `${districtName}, ${stateName}`;
+        document.getElementById('locTitleText').innerText = `${districtName}, ${stateName}, India`;
+        document.getElementById('locSubText').innerText = `Coordinates: ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E • Reference District Centroid`;
+        document.getElementById('locModeText').innerText = 'Manual Agricultural District Reference';
+
+        fetchIntelligenceData();
+    }
+
+    /**
+     * Search Locations via input
+     */
+    async function executeManualSearch(query) {
+        if (!query || query.trim().length === 0) return;
+        const list = document.getElementById('searchResultsList');
+        list.innerHTML = '<div class="text-center py-2 text-muted"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+
+        try {
+            const res = await fetch(`/api/weather/search?q=${encodeURIComponent(query)}`);
+            const data = await res.json();
+
+            if (data.results && data.results.length > 0) {
+                list.innerHTML = '';
+                data.results.forEach(r => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.className = 'list-group-item list-group-item-action py-2';
+                    item.innerHTML = `<strong>${r.name}</strong> <small class="text-muted">(${r.district || ''}, ${r.state || ''})</small>`;
+                    item.onclick = (e) => {
+                        e.preventDefault();
+                        loadDistrictPreset(r.name, r.state || '', r.lat, r.lon);
+                    };
+                    list.appendChild(item);
+                });
+            } else {
+                list.innerHTML = '<div class="text-muted text-center py-2">No matching location found.</div>';
+            }
+        } catch (e) {
+            list.innerHTML = '<div class="text-danger text-center py-2">Search failed.</div>';
+        }
+    }
+
+    /**
+     * Crop Switcher
+     */
+    function switchCrop(cropKey) {
+        activeCrop = cropKey;
+        // Update active UI pill
+        document.querySelectorAll('.crop-pill-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.innerText.toLowerCase().includes(cropKey.substring(0, 4)));
+        });
+
+        // Load new stages in dropdown
+        fetch('/api/weather/crops')
+            .then(res => res.json())
+            .then(data => {
+                if (data.crops && data.crops[cropKey]) {
+                    const stages = data.crops[cropKey].stages;
+                    const stageSelector = document.getElementById('stageSelector');
+                    stageSelector.innerHTML = '';
+                    Object.keys(stages).forEach((sKey, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = sKey;
+                        opt.innerText = `${stages[sKey].label} (Kc: ${stages[sKey].kc})`;
+                        if (idx === 1 || idx === 0) {
+                            opt.selected = true;
+                            activeStage = sKey;
+                        }
+                        stageSelector.appendChild(opt);
+                    });
+                }
+                fetchIntelligenceData();
+            });
+    }
+
+    /**
+     * Growth Stage Switcher
+     */
+    function switchStage(stageKey) {
+        activeStage = stageKey;
+        fetchIntelligenceData();
+    }
+
+    /**
+     * Master Data Fetcher & UI Updater
+     */
+    async function fetchIntelligenceData() {
+        const refreshIcon = document.getElementById('refreshIcon');
+        refreshIcon.classList.add('fa-spin');
+
+        try {
+            const url = `/api/weather/intelligence?lat=${currentLat}&lon=${currentLon}&state=${encodeURIComponent(currentState)}&district=${encodeURIComponent(currentDistrict)}&town=${encodeURIComponent(currentTown)}&crop=${activeCrop}&stage=${activeStage}`;
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (!data.success) throw new Error(data.message);
+
+            const w = data.weather;
+            const intel = data.intelligence;
+            const m = data.market;
+
+            // 1. Update Hero
+            document.getElementById('heroLocationName').innerText = `${currentTown}, ${currentDistrict}`;
+            document.getElementById('heroConditionDetail').innerText = w.current.condition;
+            document.getElementById('heroTemp').innerText = `${w.current.temperature}°C`;
+            document.getElementById('heroApparent').innerText = `Feels like ${w.current.apparent_temperature}°C`;
+            document.getElementById('heroIcon').className = `fas fa-${w.current.icon} text-warning`;
+            document.getElementById('heroHumidity').innerText = `${w.current.humidity}%`;
+            document.getElementById('heroWind').innerText = `${w.current.wind_speed} km/h`;
+            document.getElementById('heroWindDir').innerText = w.current.wind_direction_cardinal;
+            document.getElementById('heroRain').innerText = `${w.current.precipitation} mm`;
+            document.getElementById('heroRainProb').innerText = `Chance: ${w.agricultural_variables.today_rain_probability}%`;
+            document.getElementById('heroGusts').innerText = `${w.current.wind_gusts} km/h`;
+            document.getElementById('lastUpdatedDisplay').innerText = `Updated: ${new Date(w.last_updated).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`;
+
+            if (w.daily && w.daily[0]) {
+                document.getElementById('heroMinMax').innerText = `Day Max: ${w.daily[0].max_temp}°C • Night Min: ${w.daily[0].min_temp}°C`;
+            }
+
+            // 2. Update Soil & ET0 Card
+            const smVal = w.agricultural_variables.root_zone_moisture_percentage;
+            document.getElementById('soilMoistureValue').innerText = `${smVal}%`;
+            document.getElementById('soilMoistureBar').style.width = `${Math.min(100, smVal * 2.5)}%`;
+            document.getElementById('soilTemp0').innerText = `${Math.round(w.agricultural_variables.soil_temperature_0cm)}°C`;
+            document.getElementById('soilTemp6').innerText = `${Math.round(w.agricultural_variables.soil_temperature_6cm)}°C`;
+            document.getElementById('et0Display').innerText = `${w.agricultural_variables.et0_fao_evapotranspiration_daily} mm/day`;
+            document.getElementById('rain48hDisplay').innerText = `${w.agricultural_variables.accumulated_rain_48h} mm`;
+
+            // 3. Update Irrigation Card
+            const ir = intel.irrigation_guidance;
+            document.getElementById('irrigBadge').className = `metric-badge metric-badge-${ir.priority}`;
+            document.getElementById('irrigBadge').innerText = ir.status;
+            document.getElementById('irrigActionText').innerText = ir.action;
+            document.getElementById('irrigActionHi').innerText = ir.action_hi;
+            document.getElementById('irrigExplanation').innerText = ir.explanation;
+            document.getElementById('etcDisplay').innerText = `${intel.crop_water_balance.etc_crop_water_need_mm_day} mm/d`;
+            document.getElementById('irrigDepthDisplay').innerText = `${ir.recommended_depth_mm} mm`;
+
+            // 4. Update Spraying Window Card
+            const sp = intel.spray_window_advisory;
+            document.getElementById('sprayBadge').className = `metric-badge metric-badge-${sp.status === 'FAVORABLE' ? 'green' : 'amber'}`;
+            document.getElementById('sprayBadge').innerText = sp.status;
+            document.getElementById('sprayBestSlot').innerText = sp.best_window ? `Optimal Window: ${sp.best_window}` : 'No Safe Window Today';
+            document.getElementById('sprayText').innerText = sp.recommendation;
+            document.getElementById('sprayHoursDisplay').innerHTML = `Safe Hours Available: <strong>${sp.safe_hours_count} Hours</strong>`;
+
+            // 5. Update Alerts
+            document.getElementById('alertCount').innerText = intel.active_alerts.length;
+            document.getElementById('activeCropText').innerText = intel.selected_crop.name;
+            const alertsBox = document.getElementById('alertsContainer');
+            if (intel.active_alerts.length === 0) {
+                alertsBox.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-shield-heart fa-3x text-success opacity-50 mb-2"></i>
+                        <h6 class="fw-bold text-dark">No Severe Weather Risks</h6>
+                        <p class="extra-small mb-0">Current atmospheric parameters are within safe agronomic limits for ${intel.selected_crop.name}.</p>
+                    </div>`;
+            } else {
+                alertsBox.innerHTML = '';
+                intel.active_alerts.forEach(a => {
+                    alertsBox.innerHTML += `
+                        <div class="alert alert-${a.type} border-0 rounded-3 p-3 mb-2 small">
+                            <div class="fw-bold mb-1"><i class="fas fa-${a.icon} me-1"></i> ${a.title}</div>
+                            <div class="extra-small mb-1">${a.message}</div>
+                            <div class="extra-small text-muted fst-italic">Basis: ${a.scientific_basis}</div>
+                        </div>`;
+                });
+            }
+
+            // 6. Update Chart Data
+            if (w.hourly && weatherChart) {
+                weatherChart.data.labels = w.hourly.map(h => h.hour_display);
+                weatherChart.data.datasets[0].data = w.hourly.map(h => h.temperature);
+                weatherChart.data.datasets[1].data = w.hourly.map(h => h.rain_probability);
+                weatherChart.data.datasets[2].data = w.hourly.map(h => h.wind_speed);
+                weatherChart.update();
+            }
+
+            // 7. Update Mandi Price Comparison
+            document.getElementById('mandiCropName').innerText = intel.selected_crop.name;
+            const mandiBox = document.getElementById('mandiComparisonContainer');
+            if (!m.available || !m.nearby_mandis || m.nearby_mandis.length === 0) {
+                mandiBox.innerHTML = `
+                    <div class="p-3 bg-light rounded-4 text-center text-muted">
+                        <i class="fas fa-circle-info me-1"></i> No active auction prices reported today for ${m.commodity || intel.selected_crop.name} in ${currentDistrict} mandis. Check nearby district mandis in the Market Intelligence module.
+                        <div class="mt-2"><a href="/market" class="btn btn-sm btn-outline-success rounded-pill px-3">Open Full Mandi Intelligence</a></div>
+                    </div>`;
+            } else {
+                let html = '<div class="row g-3">';
+                m.nearby_mandis.forEach(item => {
+                    html += `
+                        <div class="col-md-6 col-lg-3">
+                            <div class="p-3 rounded-4 border h-100 ${item.is_highest_net ? 'bg-success bg-opacity-10 border-success' : 'bg-white'} position-relative">
+                                ${item.is_highest_net ? '<span class="badge bg-success position-absolute top-0 end-0 m-2 extra-small">Best Net Profit</span>' : ''}
+                                <h6 class="fw-bold text-dark mb-1 text-truncate" title="${item.market_name}">${item.market_name}</h6>
+                                <span class="extra-small text-muted d-block mb-2">${item.district}, ${item.state}</span>
+                                <div class="mb-2">
+                                    <small class="text-muted extra-small">Mandi Modal Price:</small>
+                                    <div class="fs-5 fw-bold text-dark">₹${item.modal_price} <span class="extra-small text-muted fw-normal">/ Qtl</span></div>
+                                </div>
+                                <div class="d-flex justify-content-between extra-small text-muted border-top pt-2">
+                                    <span>Est. Distance:</span>
+                                    <strong>~${item.estimated_distance_km} km</strong>
+                                </div>
+                                <div class="d-flex justify-content-between extra-small text-muted">
+                                    <span>Est. Freight:</span>
+                                    <span class="text-danger">-₹${item.estimated_freight_per_qtl}/Qtl</span>
+                                </div>
+                                <div class="d-flex justify-content-between extra-small pt-1 border-top mt-1">
+                                    <strong class="text-dark">Net Realization:</strong>
+                                    <strong class="text-success fs-6">₹${item.net_realization_per_qtl}</strong>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                html += '</div>';
+                mandiBox.innerHTML = html;
+            }
+
+        } catch (err) {
+            console.error('Failed to update weather data:', err);
+        } finally {
+            refreshIcon.classList.remove('fa-spin');
+        }
+    }
+</script>

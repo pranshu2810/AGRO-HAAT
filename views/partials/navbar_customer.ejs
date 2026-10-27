@@ -1,0 +1,91 @@
+<%
+let cart_count = 0;
+if (typeof cart !== 'undefined' && cart) {
+    for (let key in cart) {
+        cart_count += cart[key].quantity || 0;
+    }
+}
+%>
+<div class="navbar-farmer-wrapper">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-customer-glass">
+        <div class="container-fluid">
+            <!-- Brand Logo with Basket/Leaf Badge -->
+            <a class="navbar-brand" href="/customer/dashboard">
+                <span class="brand-customer-badge"><i class="fas fa-basket-shopping"></i></span>
+                <span>AGRO<strong style="color: #38bdf8;">HAAT</strong></span>
+            </a>
+
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#customerNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Nav Links & Profile Dropdown -->
+            <div class="collapse navbar-collapse justify-content-end" id="customerNavbar">
+                <ul class="navbar-nav align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/customer/dashboard">
+                            <i class="fas fa-house-chimney me-1"></i> <span data-i18n="nav_home">Home</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/browse_products">
+                            <i class="fas fa-store me-1"></i> <span data-i18n="nav_shop">Shop Fresh</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="/customer/cart">
+                            <i class="fas fa-cart-shopping me-1"></i> <span data-i18n="nav_cart">Cart</span>
+                            <% if (cart_count > 0) { %>
+                                <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.7rem;"><%= cart_count %></span>
+                            <% } %>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/customer/my_orders">
+                            <i class="fas fa-box-open me-1"></i> <span data-i18n="nav_orders">Orders</span>
+                        </a>
+                    </li>
+
+                    <!-- Language Switcher Pill -->
+                    <li class="nav-item ms-lg-2">
+                        <button class="btn-lang-pill" id="langSwitchBtn" onclick="toggleLanguage()" title="भाषा बदलें / Change Language" type="button">
+                            <span id="langToggleFlag">🇮🇳</span> <span id="langToggleText">हिन्दी</span>
+                        </button>
+                    </li>
+
+                    <!-- User Profile Dropdown -->
+                    <li class="nav-item dropdown ms-lg-2">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="customerProfileDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="/public/uploads/profile_pictures/<%= (user && user.image) ? user.image : 'default.jpg' %>" alt="Profile" class="rounded-circle border border-2 border-info" style="width: 36px; height: 36px; object-fit: cover;">
+                            <span class="fw-bold"><%= (user && user.fullname) ? user.fullname : 'Customer' %></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="customerProfileDrop">
+                            <li>
+                                <a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user-circle me-2 text-primary"></i> <span data-i18n="profile_my">My Profile</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/customer/my_orders">
+                                    <i class="fas fa-box me-2 text-info"></i> <span data-i18n="profile_orders">Track Orders</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/change_password">
+                                    <i class="fas fa-key me-2 text-warning"></i> <span data-i18n="profile_password">Change Password</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="/actions/logout_action.php">
+                                    <i class="fas fa-sign-out-alt me-2"></i> <span data-i18n="profile_logout">Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>

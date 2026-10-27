@@ -1,0 +1,928 @@
+<%- include('../partials/header', { page_title: 'Hybrid AI Crop Recommendation' }) %>
+<%- include('../partials/navbar_farmer') %>
+
+<div class="container-fluid px-lg-5 mt-4 mb-5">
+    <!-- Top Header Banner -->
+    <div class="glass-card p-4 mb-4 border-start border-4 border-success animate-fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-2 flex-wrap gap-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                        <i class="fas fa-layer-group me-1"></i> 5-Layer Hybrid Decision Model
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                        <i class="fas fa-microchip me-1"></i> Non-ML Deterministic Formulation
+                    </span>
+                    <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-2 rounded-pill">
+                        <i class="fas fa-language me-1"></i> Bilingual (English & हिंदी)
+                    </span>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">
+                    Hybrid AI-Driven Crop Recommendation System 🌱⚖️
+                </h2>
+                <p class="text-muted mb-0 small">
+                    Engineered according to the research paper methodology: <em>“Hybrid AI-Driven Crop Recommendation Model Based on Soil Nutrient Analysis and Weather-Driven Environmental Factors”</em>.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <button class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#architectureModal">
+                    <i class="fas fa-book-open me-1"></i> 5-Layer Architecture
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scientific Guardrail Disclaimer Alert -->
+    <div class="alert alert-light border shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center">
+        <i class="fas fa-balance-scale fa-2x text-success me-3"></i>
+        <div class="small">
+            <strong>Empirical Decision-Support Protocol:</strong> This system uses a deterministic multi-criteria pipeline. It compares your measured soil N-P-K and pH against peer-reviewed ICAR reference boundaries, filters by season & soil texture, and integrates live localized agricultural weather from Open-Meteo & IMD.
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT COLUMN: 5-Layer Input Form -->
+        <div class="col-xl-5 col-lg-6">
+            <div class="glass-card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fas fa-sliders-h text-success me-2"></i>Crop Recommendation Parameters
+                </h5>
+
+                <!-- Saved Plot Selector -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Auto-fill from Saved Farm Plot (खेत चुनें)</label>
+                    <select id="savedPlotSelect" class="form-select rounded-pill form-select-sm">
+                        <option value="">-- Choose from saved farm plots (or enter below) --</option>
+                        <% if (typeof savedPlots !== 'undefined' && savedPlots.length > 0) { %>
+                            <% savedPlots.forEach(plot => { %>
+                                <option value="<%= plot.id %>"
+                                        data-name="<%= plot.plot_name %>"
+                                        data-state="<%= plot.state %>"
+                                        data-district="<%= plot.district %>"
+                                        data-block="<%= plot.block_tehsil %>"
+                                        data-village="<%= plot.village %>"
+                                        data-lat="<%= plot.latitude %>"
+                                        data-lon="<%= plot.longitude %>"
+                                        data-soil="<%= plot.soil_type %>">
+                                    <%= plot.plot_name %> (<%= plot.district %>, <%= plot.state %>)
+                                </option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+
+                <!-- GPS Detection Box -->
+                <div class="p-3 bg-light rounded-4 mb-3 border">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small fw-bold text-dark"><i class="fas fa-satellite text-primary me-1"></i> Farm Location (GPS with Permission)</span>
+                        <span id="gpsStatusBadge" class="badge bg-secondary-subtle text-secondary rounded-pill px-2">Ready</span>
+                    </div>
+                    <p class="text-muted small mb-2" style="font-size: 0.78rem;">
+                        Used to fetch real-time temperature, humidity & rainfall from IMD & Open-Meteo.
+                    </p>
+                    <button type="button" id="detectGpsBtn" class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                        <i class="fas fa-crosshairs me-1"></i> Auto-Detect Browser GPS
+                    </button>
+                    <div id="gpsAlert" class="small mt-2 d-none"></div>
+                </div>
+
+                <!-- Location Selectors -->
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">State / UT (राज्य) *</label>
+                        <select id="stateSelect" class="form-select rounded-pill form-select-sm" required>
+                            <option value="">-- Select State / UT --</option>
+                            <% if (typeof regionHierarchy !== 'undefined') { %>
+                                <% Object.keys(regionHierarchy).sort().forEach(st => { %>
+                                    <option value="<%= st %>" <%= st === 'Uttar Pradesh' ? 'selected' : '' %>><%= st %></option>
+                                <% }); %>
+                            <% } else { %>
+                                <option value="Uttar Pradesh" selected>Uttar Pradesh</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="col-6">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label small fw-bold text-muted mb-0">District (ज़िला) *</label>
+                            <a href="javascript:void(0)" id="toggleCustomDistrictBtn" class="small text-success text-decoration-none" style="font-size: 0.7rem;">
+                                <i class="fas fa-edit"></i> Custom
+                            </a>
+                        </div>
+                        <select id="districtSelect" class="form-select rounded-pill form-select-sm mt-1" required>
+                            <option value="">-- Select District --</option>
+                        </select>
+                        <input type="text" id="customDistrictInput" class="form-control rounded-pill form-control-sm mt-1 d-none" placeholder="Type district name">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">Tehsil / Block</label>
+                        <input type="text" id="block_tehsil" class="form-control rounded-pill form-control-sm" value="Sadar Tehsil">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small fw-bold text-muted">Village / Area</label>
+                        <input type="text" id="village" class="form-control rounded-pill form-control-sm" value="Mohanlalganj">
+                    </div>
+                </div>
+
+                <!-- Hidden / Coordinate Adjusters -->
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label small text-muted" style="font-size:0.75rem;">Latitude</label>
+                        <input type="number" step="0.0001" id="latitude" class="form-control rounded-pill form-control-sm" value="26.8467">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted" style="font-size:0.75rem;">Longitude</label>
+                        <input type="number" step="0.0001" id="longitude" class="form-control rounded-pill form-control-sm" value="80.9462">
+                    </div>
+                </div>
+
+                <!-- Layer 1: Soil Inputs -->
+                <div class="p-3 bg-light rounded-4 border mb-3">
+                    <span class="fw-bold small text-dark d-block mb-2">
+                        <i class="fas fa-flask text-success me-1"></i> Layer 1: Soil Nutrient Measurements
+                    </span>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-0">Nitrogen (N) [kg/ha] *</label>
+                            <input type="number" step="1" id="n_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 240" value="260" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-0">Phosphorus (P) [kg/ha] *</label>
+                            <input type="number" step="0.5" id="p_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 18" value="22" required>
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-0">Potassium (K) [kg/ha] *</label>
+                            <input type="number" step="1" id="k_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 200" value="210" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-0">Soil pH (1:2.5) *</label>
+                            <input type="number" step="0.1" min="3.0" max="11.0" id="ph_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 6.8" value="6.8" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Layer 2: Context Inputs -->
+                <div class="p-3 bg-light rounded-4 border mb-3">
+                    <span class="fw-bold small text-dark d-block mb-2">
+                        <i class="fas fa-calendar-alt text-primary me-1"></i> Layer 2: Contextual Agronomic Factors
+                    </span>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-0">Target Season (मौसम) *</label>
+                            <select id="season" class="form-select rounded-pill form-select-sm" required>
+                                <option value="Rabi" selected>Rabi (रबी - Winter)</option>
+                                <option value="Kharif">Kharif (खरीफ - Monsoon)</option>
+                                <option value="Zaid">Zaid (जायद - Summer)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold mb-0">Soil Texture *</label>
+                            <select id="soil_type" class="form-select rounded-pill form-select-sm" required>
+                                <option value="Alluvial Soil" selected>Alluvial Soil (जलोढ़)</option>
+                                <option value="Black Cotton Soil">Black Cotton Soil (काली मिट्टी)</option>
+                                <option value="Loamy Soil">Loamy Soil (दोमट)</option>
+                                <option value="Clay Loam">Clay Loam (मटियार दोमट)</option>
+                                <option value="Sandy Loam">Sandy Loam (बलुई दोमट)</option>
+                                <option value="Red / Laterite">Red / Laterite (लाल मिट्टी)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold mb-0">Irrigation Facility (सिंचाई सुविधा)</label>
+                            <select id="irrigation_type" class="form-select rounded-pill form-select-sm">
+                                <option value="Canal / Irrigated" selected>Canal / Tube Well (Assured Irrigation)</option>
+                                <option value="Drip / Sprinkler Micro-irrigation">Drip / Sprinkler Micro-irrigation</option>
+                                <option value="Rainfed (Barani)">Rainfed (वर्षा आधारित / असिंचित)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="button" id="runRecommendationBtn" class="btn btn-success btn-lg w-100 py-3 rounded-pill fw-bold shadow">
+                    <i class="fas fa-cogs me-2"></i> Compute 5-Layer Crop Recommendation
+                </button>
+                <div id="validationErrorAlert" class="alert alert-danger mt-3 d-none rounded-4 small"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Recommendation Output -->
+        <div class="col-xl-7 col-lg-6">
+            <!-- Loading State -->
+            <div id="recLoading" class="glass-card p-5 text-center d-none shadow-sm animate-fade-in-up">
+                <div class="spinner-border text-success mb-3" style="width: 3.5rem; height: 3.5rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4 class="fw-bold text-dark">Computing 5-Layer Hybrid Crop Suitability...</h4>
+                <p class="text-muted small">
+                    Layer 1: Soil nutrient matching • Layer 2: Contextual season filtering • Layer 3: Live weather integration • Layer 4: Regional market viability • Layer 5: Composite multi-criteria ranking.
+                </p>
+            </div>
+
+            <!-- Placeholder -->
+            <div id="recPlaceholder" class="glass-card p-5 text-center shadow-sm">
+                <i class="fas fa-seedling fa-4x text-success opacity-50 mb-3"></i>
+                <h4 class="fw-bold text-dark">Awaiting Input Parameters</h4>
+                <p class="text-muted small mx-auto" style="max-width: 480px;">
+                    Fill your soil measurements (N, P, K, pH) and select season & location on the left. The system will rank the top 2–3 suitable crops with detailed explanations in English and Hindi.
+                </p>
+            </div>
+
+            <!-- Recommendation Results Container -->
+            <div id="recResultsContainer" class="d-none">
+                <!-- Action Bar & Language Switcher -->
+                <div class="glass-card p-3 mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2 shadow-sm">
+                    <!-- Language Tabs -->
+                    <ul class="nav nav-pills" id="langTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill px-3 py-1 fw-bold small" id="tabEn" data-bs-toggle="pill" data-bs-target="#contentEn" type="button" role="tab">
+                                🇬🇧 English Report
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3 py-1 fw-bold small ms-1" id="tabHi" data-bs-toggle="pill" data-bs-target="#contentHi" type="button" role="tab">
+                                🇮🇳 हिंदी रिपोर्ट
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i> Print / PDF
+                        </button>
+                        <button class="btn btn-outline-success btn-sm rounded-pill px-3" id="copyRecSummaryBtn">
+                            <i class="fas fa-copy me-1"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Printable Report Box -->
+                <div class="printable-crop-report">
+                    <div class="tab-content" id="recTabContent">
+                        
+                        <!-- ================= ENGLISH TAB ================= -->
+                        <div class="tab-pane fade show active" id="contentEn" role="tabpanel">
+                            <!-- Primary Recommendation Hero Card -->
+                            <div class="glass-card p-4 shadow-sm mb-3 border-top border-4 border-success">
+                                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                    <div>
+                                        <span class="badge bg-success rounded-pill px-3 py-1 mb-2">#1 Primary Recommendation</span>
+                                        <h2 class="fw-bold text-dark mb-0" id="primaryCropNameEn">--</h2>
+                                        <span class="text-muted small fst-italic" id="primaryCropSciEn">--</span>
+                                        <div class="mt-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small" id="primaryConfidenceEn">--</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="d-block small text-muted">Composite Suitability</span>
+                                        <h2 class="fw-bold text-success mb-0" id="primaryScoreEn">--%</h2>
+                                        <small class="text-muted">Multi-Criteria Score</small>
+                                    </div>
+                                </div>
+
+                                <!-- Score Breakdown Badges -->
+                                <div class="row g-2 mb-3 text-center">
+                                    <div class="col-4">
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">Layer 1: Soil</small>
+                                            <strong class="text-dark" id="scoreSoilEn">--%</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">Layer 2: Context</small>
+                                            <strong class="text-dark" id="scoreContextEn">--%</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">Layer 3: Weather</small>
+                                            <strong class="text-dark" id="scoreWeatherEn">--%</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Environmental Context Attribution -->
+                                <div class="row g-2 mb-3 small">
+                                    <div class="col-12">
+                                        <div class="p-2 bg-white rounded-3 border">
+                                            <strong><i class="fas fa-cloud-sun text-info me-1"></i> Live Weather Context:</strong>
+                                            <div class="text-muted mt-1" id="weatherContextDescEn">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Suitability Reasons -->
+                                <div class="p-3 bg-success-subtle text-success-emphasis rounded-4 border border-success-subtle mb-3">
+                                    <h6 class="fw-bold mb-2"><i class="fas fa-check-circle me-1"></i> Why this crop is recommended:</h6>
+                                    <ul id="primaryReasonsListEn" class="mb-0 small ps-3"></ul>
+                                </div>
+
+                                <!-- Cautions / Deficiencies -->
+                                <div id="warningsSecEn" class="p-3 bg-warning-subtle text-warning-emphasis rounded-4 border border-warning-subtle mb-3 d-none">
+                                    <h6 class="fw-bold mb-2"><i class="fas fa-exclamation-triangle me-1"></i> Agronomic Cautions & Remedial Steps:</h6>
+                                    <ul id="primaryWarningsListEn" class="mb-0 small ps-3"></ul>
+                                </div>
+
+                                <!-- Agronomic Advice -->
+                                <div class="p-3 bg-light rounded-4 border">
+                                    <h6 class="fw-bold text-dark mb-1"><i class="fas fa-seedling text-success me-1"></i> Cultivation Advisory:</h6>
+                                    <p class="text-muted small mb-0" id="primaryAdviceEn">--</p>
+                                </div>
+                            </div>
+
+                            <!-- Ranked Alternative Crops (2nd and 3rd Best) -->
+                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-list-ol text-primary me-2"></i>Alternative Ranked Crops (Intercropping & Rotation Options)</h6>
+                            <div class="row g-3" id="alternativeCropsGridEn"></div>
+                        </div>
+
+                        <!-- ================= HINDI TAB ================= -->
+                        <div class="tab-pane fade" id="contentHi" role="tabpanel">
+                            <!-- Primary Recommendation Hero Card (Hindi) -->
+                            <div class="glass-card p-4 shadow-sm mb-3 border-top border-4 border-success">
+                                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                    <div>
+                                        <span class="badge bg-success rounded-pill px-3 py-1 mb-2">#1 प्रथम वरीयता फसल (Primary Crop)</span>
+                                        <h2 class="fw-bold text-dark mb-0" id="primaryCropNameHi">--</h2>
+                                        <span class="text-muted small fst-italic" id="primaryCropSciHi">--</span>
+                                        <div class="mt-1">
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small" id="primaryConfidenceHi">--</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="d-block small text-muted">समग्र उपयुक्तता स्कोर</span>
+                                        <h2 class="fw-bold text-success mb-0" id="primaryScoreHi">--%</h2>
+                                        <small class="text-muted">मिश्रित मूल्यांकन</small>
+                                    </div>
+                                </div>
+
+                                <!-- Score Breakdown Badges (Hindi) -->
+                                <div class="row g-2 mb-3 text-center">
+                                    <div class="col-4">
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">स्तर 1: मृदा पोषक</small>
+                                            <strong class="text-dark" id="scoreSoilHi">--%</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">स्तर 2: मौसम व मिट्टी</small>
+                                            <strong class="text-dark" id="scoreContextHi">--%</strong>
+                                        </div>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="p-2 bg-light rounded-3 border">
+                                            <small class="text-muted d-block" style="font-size:0.75rem;">स्तर 3: लाइव मौसम</small>
+                                            <strong class="text-dark" id="scoreWeatherHi">--%</strong>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Environmental Context (Hindi) -->
+                                <div class="row g-2 mb-3 small">
+                                    <div class="col-12">
+                                        <div class="p-2 bg-white rounded-3 border">
+                                            <strong><i class="fas fa-cloud-sun text-info me-1"></i> वास्तविक मौसम विवरण:</strong>
+                                            <div class="text-muted mt-1" id="weatherContextDescHi">--</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Suitability Reasons (Hindi) -->
+                                <div class="p-3 bg-success-subtle text-success-emphasis rounded-4 border border-success-subtle mb-3">
+                                    <h6 class="fw-bold mb-2"><i class="fas fa-check-circle me-1"></i> यह फसल क्यों उपयुक्त है:</h6>
+                                    <ul id="primaryReasonsListHi" class="mb-0 small ps-3"></ul>
+                                </div>
+
+                                <!-- Cautions / Deficiencies (Hindi) -->
+                                <div id="warningsSecHi" class="p-3 bg-warning-subtle text-warning-emphasis rounded-4 border border-warning-subtle mb-3 d-none">
+                                    <h6 class="fw-bold mb-2"><i class="fas fa-exclamation-triangle me-1"></i> कृषि सावधानियां एवं सावधान कदम:</h6>
+                                    <ul id="primaryWarningsListHi" class="mb-0 small ps-3"></ul>
+                                </div>
+
+                                <!-- Agronomic Advice (Hindi) -->
+                                <div class="p-3 bg-light rounded-4 border">
+                                    <h6 class="fw-bold text-dark mb-1"><i class="fas fa-seedling text-success me-1"></i> बुवाई एवं पोषण सलाह:</h6>
+                                    <p class="text-muted small mb-0" id="primaryAdviceHi">--</p>
+                                </div>
+                            </div>
+
+                            <!-- Ranked Alternative Crops (Hindi) -->
+                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-list-ol text-primary me-2"></i>अन्य अनुशंसित विकल्प (मिश्रित खेती / फसल चक्र)</h6>
+                            <div class="row g-3" id="alternativeCropsGridHi"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Recommendation History -->
+            <div class="glass-card p-4 shadow-sm mt-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-history text-secondary me-2"></i>Your Recommendation History
+                    </h5>
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">
+                        <%= typeof history !== 'undefined' ? history.length : 0 %> Past Runs
+                    </span>
+                </div>
+
+                <div class="row g-3">
+                    <% if (typeof history !== 'undefined' && history.length > 0) { %>
+                        <% history.forEach(item => { %>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="fw-bold text-success mb-0"><%= item.primary_crop %></h6>
+                                        <% if (item.score) { %>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                                                <%= item.score %>% Match
+                                            </span>
+                                        <% } %>
+                                    </div>
+                                    <small class="text-muted d-block mb-1" style="font-size: 0.75rem;">
+                                        <%= item.input_summary %>
+                                    </small>
+                                    <small class="text-muted" style="font-size: 0.72rem;">
+                                        <%= new Date(item.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) %>
+                                    </small>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-12 text-center py-3 text-muted small">
+                            No past recommendations recorded. Run your first recommendation above!
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= 5-LAYER ARCHITECTURE MODAL ================= -->
+<div class="modal fade" id="architectureModal" tabindex="-1" aria-labelledby="architectureModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="architectureModalLabel">
+                    <i class="fas fa-layer-group me-2"></i>5-Layer Hybrid Crop Recommendation Architecture
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 small">
+                <div class="alert alert-light border mb-3">
+                    <strong>Research Citation:</strong> “Hybrid AI-Driven Crop Recommendation Model Based on Soil Nutrient Analysis and Weather-Driven Environmental Factors” (Non-ML Multi-Criteria Decision Formulation).
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-success"><i class="fas fa-vial me-1"></i> Layer 1: Soil Nutrients</h6>
+                            <p class="mb-0 text-muted">Evaluates Nitrogen, Phosphorus, Potassium, and Soil pH using piecewise continuous suitability membership curves against ICAR agronomic thresholds.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-primary"><i class="fas fa-filter me-1"></i> Layer 2: Contextual Filter</h6>
+                            <p class="mb-0 text-muted">Applies season validity (Kharif, Rabi, Zaid) and soil texture compatibility (Alluvial, Black, Clay, Sandy, Laterite) to eliminate out-of-season crops early.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-info"><i class="fas fa-cloud-sun me-1"></i> Layer 3: Weather Integration</h6>
+                            <p class="mb-0 text-muted">Fetches live ambient temperature, relative humidity, and rainfall via Open-Meteo & IMD APIs to score thermal and moisture feasibility.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100">
+                            <h6 class="fw-bold text-warning"><i class="fas fa-coins me-1"></i> Layer 4: Regional Profitability</h6>
+                            <p class="mb-0 text-muted">Integrates live Agmarknet 2.0 GoI mandi modal prices. If live prices are unavailable, the layer is omitted without fabricating fake figures.</p>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="p-3 bg-white rounded-3 border text-center">
+                            <h6 class="fw-bold text-dark"><i class="fas fa-calculator me-1"></i> Layer 5: Composite Multi-Criteria Ranking</h6>
+                            <p class="mb-0 text-muted">Aggregates verified layer scores: <code>S_composite = 0.35·S_soil + 0.25·S_weather + 0.20·S_context + 0.20·S_market</code> (or normalized 3-layer mode if market data is unavailable). Ranks top 2-3 crops with primary selection.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= JAVASCRIPT LOGIC ================= -->
+<script>
+const REGION_DATA = <%- JSON.stringify(typeof regionHierarchy !== 'undefined' ? regionHierarchy : {}) %>;
+
+// Populate district dropdown
+function updateDistrictDropdown(selectedState, selectedDistrict = '') {
+    const districtSelect = document.getElementById('districtSelect');
+    const customInput = document.getElementById('customDistrictInput');
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+
+    let matched = false;
+    if (selectedState && REGION_DATA[selectedState]) {
+        const districts = (REGION_DATA[selectedState].districts || []).slice().sort();
+        districts.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            if (selectedDistrict && d.toLowerCase() === selectedDistrict.toLowerCase()) {
+                opt.selected = true;
+                matched = true;
+            } else if (!selectedDistrict && d === districts[0]) {
+                opt.selected = true;
+                matched = true;
+            }
+            districtSelect.appendChild(opt);
+        });
+    }
+
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '✏️ Other / Custom District...';
+    districtSelect.appendChild(customOpt);
+
+    if (selectedDistrict && !matched) {
+        customOpt.selected = true;
+        customInput.value = selectedDistrict;
+        customInput.classList.remove('d-none');
+    } else if (districtSelect.value !== '__custom__') {
+        customInput.classList.add('d-none');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const stateSelect = document.getElementById('stateSelect');
+    updateDistrictDropdown(stateSelect.value, 'Lucknow');
+
+    stateSelect.addEventListener('change', (e) => {
+        updateDistrictDropdown(e.target.value);
+    });
+
+    const districtSelect = document.getElementById('districtSelect');
+    const customDistrictInput = document.getElementById('customDistrictInput');
+    districtSelect.addEventListener('change', (e) => {
+        if (e.target.value === '__custom__') {
+            customDistrictInput.classList.remove('d-none');
+            customDistrictInput.focus();
+        } else {
+            customDistrictInput.classList.add('d-none');
+        }
+    });
+
+    document.getElementById('toggleCustomDistrictBtn').addEventListener('click', () => {
+        districtSelect.value = '__custom__';
+        customDistrictInput.classList.remove('d-none');
+        customDistrictInput.focus();
+    });
+
+    // Auto-fill from saved plot selector
+    const savedPlotSelect = document.getElementById('savedPlotSelect');
+    savedPlotSelect.addEventListener('change', (e) => {
+        const opt = e.target.selectedOptions[0];
+        if (!opt || !opt.value) return;
+
+        if (opt.dataset.state) {
+            stateSelect.value = opt.dataset.state;
+            updateDistrictDropdown(opt.dataset.state, opt.dataset.district);
+        }
+        if (opt.dataset.block) document.getElementById('block_tehsil').value = opt.dataset.block;
+        if (opt.dataset.village) document.getElementById('village').value = opt.dataset.village;
+        if (opt.dataset.lat) document.getElementById('latitude').value = opt.dataset.lat;
+        if (opt.dataset.lon) document.getElementById('longitude').value = opt.dataset.lon;
+        if (opt.dataset.soil) document.getElementById('soil_type').value = opt.dataset.soil;
+    });
+});
+
+// GPS Detection
+document.getElementById('detectGpsBtn').addEventListener('click', () => {
+    const statusBadge = document.getElementById('gpsStatusBadge');
+    const alertBox = document.getElementById('gpsAlert');
+    const btn = document.getElementById('detectGpsBtn');
+
+    if (!navigator.geolocation) {
+        alertBox.className = 'small mt-2 alert alert-danger p-2 rounded-3';
+        alertBox.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Geolocation not supported in browser.';
+        alertBox.classList.remove('d-none');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Acquiring GPS...';
+    statusBadge.className = 'badge bg-warning text-dark rounded-pill px-2';
+    statusBadge.textContent = 'Acquiring GPS';
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const acc = Math.round(position.coords.accuracy || 10);
+
+            document.getElementById('latitude').value = lat.toFixed(4);
+            document.getElementById('longitude').value = lon.toFixed(4);
+
+            try {
+                const res = await fetch('/api/soil/reverse-geocode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitude: lat, longitude: lon })
+                });
+                const loc = await res.json();
+                if (loc.state) {
+                    const stSelect = document.getElementById('stateSelect');
+                    stSelect.value = loc.state;
+                    updateDistrictDropdown(loc.state, loc.district);
+                }
+                if (loc.block) document.getElementById('block_tehsil').value = loc.block;
+                if (loc.village) document.getElementById('village').value = loc.village;
+
+                statusBadge.className = 'badge bg-success text-white rounded-pill px-2';
+                statusBadge.textContent = 'GPS Locked';
+
+                alertBox.className = 'small mt-2 alert alert-success p-2 rounded-3';
+                alertBox.innerHTML = `<i class="fas fa-check-circle me-1"></i> GPS: <strong>${loc.village || ''}, ${loc.district}, ${loc.state}</strong> (±${acc}m)`;
+                alertBox.classList.remove('d-none');
+            } catch (e) {
+                statusBadge.className = 'badge bg-success text-white rounded-pill px-2';
+                statusBadge.textContent = 'Coordinates Set';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Re-detect GPS';
+        },
+        (error) => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Auto-Detect Browser GPS';
+            statusBadge.className = 'badge bg-danger text-white rounded-pill px-2';
+            statusBadge.textContent = 'GPS Failed';
+
+            let msg = 'Could not acquire GPS.';
+            if (error.code === error.PERMISSION_DENIED) {
+                msg = 'Location permission was denied. Please select your State and District manually.';
+            }
+            alertBox.className = 'small mt-2 alert alert-warning p-2 rounded-3';
+            alertBox.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${msg}`;
+            alertBox.classList.remove('d-none');
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+    );
+});
+
+// Run Crop Recommendation
+document.getElementById('runRecommendationBtn').addEventListener('click', async () => {
+    const errBox = document.getElementById('validationErrorAlert');
+    errBox.classList.add('d-none');
+
+    const getSelectedDistrict = () => {
+        const select = document.getElementById('districtSelect');
+        const custom = document.getElementById('customDistrictInput');
+        if (select.value === '__custom__' || !select.value) {
+            return custom.value.trim() || 'Central District';
+        }
+        return select.value;
+    };
+
+    const payload = {
+        n_value: document.getElementById('n_value').value,
+        p_value: document.getElementById('p_value').value,
+        k_value: document.getElementById('k_value').value,
+        ph_value: document.getElementById('ph_value').value,
+        season: document.getElementById('season').value,
+        soil_type: document.getElementById('soil_type').value,
+        state: document.getElementById('stateSelect').value,
+        district: getSelectedDistrict(),
+        block_tehsil: document.getElementById('block_tehsil').value,
+        village: document.getElementById('village').value,
+        latitude: document.getElementById('latitude').value,
+        longitude: document.getElementById('longitude').value,
+        irrigation_type: document.getElementById('irrigation_type').value
+    };
+
+    const runBtn = document.getElementById('runRecommendationBtn');
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Computing 5 Layers...';
+
+    document.getElementById('recPlaceholder').classList.add('d-none');
+    document.getElementById('recResultsContainer').classList.add('d-none');
+    document.getElementById('recLoading').classList.remove('d-none');
+
+    try {
+        const response = await fetch('/api/crop/recommend', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            document.getElementById('recLoading').classList.add('d-none');
+            document.getElementById('recPlaceholder').classList.remove('d-none');
+            errBox.textContent = data.error || 'Failed to compute crop recommendation.';
+            errBox.classList.remove('d-none');
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="fas fa-cogs me-2"></i> Compute 5-Layer Crop Recommendation';
+            return;
+        }
+
+        renderCropRecommendation(data);
+
+        document.getElementById('recLoading').classList.add('d-none');
+        document.getElementById('recResultsContainer').classList.remove('d-none');
+    } catch (err) {
+        document.getElementById('recLoading').classList.add('d-none');
+        document.getElementById('recPlaceholder').classList.remove('d-none');
+        errBox.textContent = 'Server Connection Error: ' + err.message;
+        errBox.classList.remove('d-none');
+    }
+
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i class="fas fa-cogs me-2"></i> Compute 5-Layer Crop Recommendation';
+});
+
+// Render Bilingual Output
+function renderCropRecommendation(data) {
+    const primary = data.primary_recommendation;
+    const weather = data.weather_context;
+    const market = data.market_context;
+
+    // 1. ENGLISH VIEW
+    document.getElementById('primaryCropNameEn').textContent = primary.name_en;
+    document.getElementById('primaryCropSciEn').textContent = primary.scientific_name;
+    document.getElementById('primaryConfidenceEn').textContent = primary.confidence_en;
+    document.getElementById('primaryScoreEn').textContent = `${primary.composite_score}%`;
+
+    document.getElementById('scoreSoilEn').textContent = `${primary.score_breakdown.soil_score}%`;
+    document.getElementById('scoreContextEn').textContent = `${primary.score_breakdown.context_score}%`;
+    document.getElementById('scoreWeatherEn').textContent = `${primary.score_breakdown.weather_score}%`;
+
+    document.getElementById('weatherContextDescEn').innerHTML = `
+        <strong>${weather.temperature}</strong>, ${weather.relative_humidity} Humidity (${weather.conditions})<br>
+        <span class="text-muted" style="font-size:0.75rem;">Source: ${weather.data_source}</span>
+    `;
+
+    // Reasons EN
+    const reasonsListEn = document.getElementById('primaryReasonsListEn');
+    reasonsListEn.innerHTML = '';
+    primary.reasons_en.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        reasonsListEn.appendChild(li);
+    });
+
+    // Warnings EN
+    const warningsSecEn = document.getElementById('warningsSecEn');
+    const warningsListEn = document.getElementById('primaryWarningsListEn');
+    warningsListEn.innerHTML = '';
+    if (primary.warnings_en && primary.warnings_en.length > 0) {
+        primary.warnings_en.forEach(w => {
+            const li = document.createElement('li');
+            li.textContent = w;
+            warningsListEn.appendChild(li);
+        });
+        warningsSecEn.classList.remove('d-none');
+    } else {
+        warningsSecEn.classList.add('d-none');
+    }
+
+    document.getElementById('primaryAdviceEn').textContent = primary.agronomic_advice.en;
+
+    // Alternatives EN
+    const altGridEn = document.getElementById('alternativeCropsGridEn');
+    altGridEn.innerHTML = '';
+    data.ranked_crops.slice(1).forEach((crop, idx) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6';
+        col.innerHTML = `
+            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge bg-secondary-subtle text-dark rounded-pill px-2 py-1 small">Rank #${idx + 2}</span>
+                        <h5 class="fw-bold text-dark mb-0 mt-1">${crop.name_en}</h5>
+                        <small class="text-muted">${crop.scientific_name}</small>
+                    </div>
+                    <span class="badge bg-success rounded-pill px-2 py-1 fs-6">${crop.composite_score}%</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted bg-light p-2 rounded-3 mb-2" style="font-size:0.75rem;">
+                    <span>Soil: <strong>${crop.layers.soil.score}%</strong></span>
+                    <span>Weather: <strong>${crop.layers.weather.score}%</strong></span>
+                    <span>Context: <strong>${crop.layers.context.score}%</strong></span>
+                </div>
+                <p class="text-muted small mb-0">${crop.agronomic_advice.en}</p>
+            </div>
+        `;
+        altGridEn.appendChild(col);
+    });
+
+    // 2. HINDI VIEW
+    document.getElementById('primaryCropNameHi').textContent = primary.name_hi;
+    document.getElementById('primaryCropSciHi').textContent = primary.scientific_name;
+    document.getElementById('primaryConfidenceHi').textContent = primary.confidence_hi;
+    document.getElementById('primaryScoreHi').textContent = `${primary.composite_score}%`;
+
+    document.getElementById('scoreSoilHi').textContent = `${primary.score_breakdown.soil_score}%`;
+    document.getElementById('scoreContextHi').textContent = `${primary.score_breakdown.context_score}%`;
+    document.getElementById('scoreWeatherHi').textContent = `${primary.score_breakdown.weather_score}%`;
+
+    document.getElementById('weatherContextDescHi').innerHTML = `
+        <strong>${weather.temperature}</strong>, आर्द्रता ${weather.relative_humidity} (${weather.conditions})<br>
+        <span class="text-muted" style="font-size:0.75rem;">मौसम स्रोत: ${weather.data_source}</span>
+    `;
+
+    // Reasons HI
+    const reasonsListHi = document.getElementById('primaryReasonsListHi');
+    reasonsListHi.innerHTML = '';
+    primary.reasons_hi.forEach(r => {
+        const li = document.createElement('li');
+        li.textContent = r;
+        reasonsListHi.appendChild(li);
+    });
+
+    // Warnings HI
+    const warningsSecHi = document.getElementById('warningsSecHi');
+    const warningsListHi = document.getElementById('primaryWarningsListHi');
+    warningsListHi.innerHTML = '';
+    if (primary.warnings_hi && primary.warnings_hi.length > 0) {
+        primary.warnings_hi.forEach(w => {
+            const li = document.createElement('li');
+            li.textContent = w;
+            warningsListHi.appendChild(li);
+        });
+        warningsSecHi.classList.remove('d-none');
+    } else {
+        warningsSecHi.classList.add('d-none');
+    }
+
+    document.getElementById('primaryAdviceHi').textContent = primary.agronomic_advice.hi;
+
+    // Alternatives HI
+    const altGridHi = document.getElementById('alternativeCropsGridHi');
+    altGridHi.innerHTML = '';
+    data.ranked_crops.slice(1).forEach((crop, idx) => {
+        const col = document.createElement('div');
+        col.className = 'col-md-6';
+        col.innerHTML = `
+            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <span class="badge bg-secondary-subtle text-dark rounded-pill px-2 py-1 small">क्रम #${idx + 2}</span>
+                        <h5 class="fw-bold text-dark mb-0 mt-1">${crop.name_hi}</h5>
+                        <small class="text-muted">${crop.scientific_name}</small>
+                    </div>
+                    <span class="badge bg-success rounded-pill px-2 py-1 fs-6">${crop.composite_score}%</span>
+                </div>
+                <div class="d-flex justify-content-between small text-muted bg-light p-2 rounded-3 mb-2" style="font-size:0.75rem;">
+                    <span>मृदा: <strong>${crop.layers.soil.score}%</strong></span>
+                    <span>मौसम: <strong>${crop.layers.weather.score}%</strong></span>
+                    <span>क्षेत्रीय: <strong>${crop.layers.context.score}%</strong></span>
+                </div>
+                <p class="text-muted small mb-0">${crop.agronomic_advice.hi}</p>
+            </div>
+        `;
+        altGridHi.appendChild(col);
+    });
+
+    document.getElementById('recResultsContainer').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Copy Summary
+document.getElementById('copyRecSummaryBtn').addEventListener('click', () => {
+    const cropEn = document.getElementById('primaryCropNameEn').textContent;
+    const cropHi = document.getElementById('primaryCropNameHi').textContent;
+    const score = document.getElementById('primaryScoreEn').textContent;
+    const adviceEn = document.getElementById('primaryAdviceEn').textContent;
+    const adviceHi = document.getElementById('primaryAdviceHi').textContent;
+
+    navigator.clipboard.writeText(`[AgroHaat Hybrid Crop Recommendation]\nPrimary Crop: ${cropEn} (${cropHi}) - Score: ${score}\nEN Advice: ${adviceEn}\nHI Advice: ${adviceHi}`);
+    alert('Crop recommendation summary copied to clipboard!');
+});
+</script>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .printable-crop-report, .printable-crop-report * {
+        visibility: visible;
+    }
+    .printable-crop-report {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .navbar-farmer-wrapper, #detectGpsBtn, .btn, #langTabs {
+        display: none !important;
+    }
+}
+</style>
+
+<%- include('../partials/footer') %>

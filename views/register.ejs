@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account | Agro-Haat 2.0</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Glassmorphism Auth Stylesheet -->
+    <link rel="stylesheet" href="/css/auth.css?v=2">
+</head>
+<body class="auth-page">
+    <!-- Back to Home Floating Pill Button -->
+    <a href="/" class="btn-auth-home" title="Back to Homepage">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Home</span>
+    </a>
+
+    <!-- Centered Glassmorphism Box -->
+    <div class="auth-wrapper auth-register-wide">
+        <div class="auth-glass-box">
+            <!-- Brand Header -->
+            <div class="auth-header">
+                <div class="auth-logo-badge">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div class="auth-brand-name">AGRO<span>HAAT</span></div>
+                <h1 class="auth-title">Create Account</h1>
+                <p class="auth-subtitle">Join thousands of smart farmers and conscious consumers</p>
+            </div>
+
+            <!-- Server Flash Message / Alerts -->
+            <% if (typeof msg !== 'undefined' && msg) { %>
+                <div class="auth-alert auth-alert-<%= (typeof msg_type !== 'undefined' && msg_type) ? msg_type : 'info' %>">
+                    <%= msg %>
+                </div>
+            <% } %>
+
+            <!-- Registration Form -->
+            <form action="/actions/register_action.php" method="POST" onsubmit="return validateForm()">
+                <!-- Row 1: Full Name & Username -->
+                <div class="form-row-2col">
+                    <div class="form-group-item">
+                        <label for="regFullname"><i class="fa-solid fa-id-card"></i> Full Name</label>
+                        <div class="input-icon-wrap">
+                            <input type="text" id="regFullname" name="fullname" placeholder="Ramesh Kumar" required autocomplete="name">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="form-group-item">
+                        <label for="regUsername"><i class="fa-solid fa-user-tag"></i> Username</label>
+                        <div class="input-icon-wrap">
+                            <input type="text" id="regUsername" name="username" placeholder="ramesh123" required autocomplete="username">
+                            <i class="fa-solid fa-at"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 2: Email & Phone -->
+                <div class="form-row-2col">
+                    <div class="form-group-item">
+                        <label for="regEmail"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                        <div class="input-icon-wrap">
+                            <input type="email" id="regEmail" name="email" placeholder="ramesh@example.com" pattern="[a-zA-Z0-9._%+-]+@[a-z]+\.[a-z]{2,3}" required autocomplete="email">
+                            <i class="fa-solid fa-at"></i>
+                        </div>
+                    </div>
+                    <div class="form-group-item">
+                        <label for="regPhone"><i class="fa-solid fa-mobile-screen"></i> Phone Number</label>
+                        <div class="input-icon-wrap">
+                            <input type="tel" id="regPhone" name="phone" placeholder="10-digit number" pattern="[0-9]{10}" maxlength="10" minlength="10" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0,10)" title="Please enter exactly 10 digit phone number" required autocomplete="tel">
+                            <i class="fa-solid fa-phone"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Row 3: Role Selection -->
+                <div class="form-group-item">
+                    <label for="regRole"><i class="fa-solid fa-users-gear"></i> I am joining as</label>
+                    <div class="input-icon-wrap">
+                        <select id="regRole" name="role" required>
+                            <option value="">-- Select Your Role --</option>
+                            <option value="Farmer">🌾 Farmer (Manage Crops, Weather & Mandi Rates)</option>
+                            <option value="Customer">🛒 Customer (Order Farm Fresh & Subscriptions)</option>
+                        </select>
+                        <i class="fa-solid fa-user-check"></i>
+                        <i class="fa-solid fa-chevron-down select-chevron"></i>
+                    </div>
+                </div>
+
+                <!-- Row 4: Password & Confirm Password -->
+                <div class="form-row-2col">
+                    <div class="form-group-item">
+                        <label for="password"><i class="fa-solid fa-lock"></i> Password</label>
+                        <div class="input-icon-wrap">
+                            <input type="password" id="password" name="password" placeholder="Create password" required autocomplete="new-password">
+                            <i class="fa-solid fa-key"></i>
+                        </div>
+                    </div>
+                    <div class="form-group-item">
+                        <label for="cpassword"><i class="fa-solid fa-shield-halved"></i> Confirm Password</label>
+                        <div class="input-icon-wrap">
+                            <input type="password" id="cpassword" placeholder="Repeat password" required autocomplete="new-password">
+                            <i class="fa-solid fa-check-double"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth-submit">
+                    <span>Create Account</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Links -->
+            <div class="auth-extra-links">
+                <p>Already have an account? <a href="/login" class="auth-link">Sign In</a></p>
+                <a href="/login?forgot=1" class="auth-forgot-link">
+                    <i class="fa-solid fa-unlock-keyhole"></i> Forgot Password?
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/logic.js?v=3"></script>
+</body>
+</html>

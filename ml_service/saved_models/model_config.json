@@ -1,0 +1,47 @@
+{
+  "model_architecture": "convnext_tiny",
+  "input_size": 224,
+  "num_classes": 23,
+  "classes": [
+    "Background_without_leaves",
+    "Corn_(maize)___Cercospora_leaf_spot_Gray_leaf_spot",
+    "Corn_(maize)___Common_rust_",
+    "Corn_(maize)___Northern_Leaf_Blight",
+    "Corn_(maize)___healthy",
+    "Pepper__bell___Bacterial_spot",
+    "Pepper__bell___healthy",
+    "Potato___Early_blight",
+    "Potato___Late_blight",
+    "Potato___healthy",
+    "Rice___Bacterial_leaf_blight",
+    "Rice___Blast",
+    "Rice___Brown_Spot",
+    "Rice___healthy",
+    "Tomato___Bacterial_spot",
+    "Tomato___Early_blight",
+    "Tomato___Late_blight",
+    "Tomato___Leaf_Mold",
+    "Tomato___Septoria_leaf_spot",
+    "Tomato___Target_Spot",
+    "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+    "Tomato___Tomato_mosaic_virus",
+    "Tomato___healthy"
+  ],
+  "test_metrics": {
+    "accuracy": 0.9758,
+    "precision": 0.9377,
+    "recall": 0.946,
+    "macro_f1": 0.9413
+  },
+  "comparison": {
+    "convnext_tiny": {
+      "test_metrics": {
+        "accuracy": 0.9758,
+        "precision": 0.9377,
+        "recall": 0.946,
+        "macro_f1": 0.9413
+      },
+      "training_time_seconds": 532.73
+    }
+  }
+}

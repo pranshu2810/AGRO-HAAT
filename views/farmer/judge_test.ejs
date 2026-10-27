@@ -1,0 +1,492 @@
+<%- include('../partials/header', { page_title: 'Judge Test Console - AI Pathology Vision' }) %>
+<%- include('../partials/navbar_farmer') %>
+
+<div class="container-fluid py-4 px-lg-5">
+    <!-- Header Banner -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-danger px-3 py-2 rounded-pill"><i class="fas fa-balance-scale me-1"></i> Hackathon Judge Test Mode</span>
+                <span class="badge bg-dark px-3 py-2 rounded-pill" id="gpuStatusBadge"><i class="fas fa-microchip me-1 text-success"></i> RTX 2050 CUDA Active</span>
+                <span class="badge bg-success px-3 py-2 rounded-pill" id="modelArchBadge">ConvNeXt-Tiny</span>
+            </div>
+            <h2 class="fw-bold mb-0 text-dark">Real-Time Crop Pathology & Grad-CAM Visual Diagnostics</h2>
+            <p class="text-muted small mb-0">Upload any field leaf image to test zero-leakage transfer learning, image quality gates, Grad-CAM attention, and automated rejection.</p>
+        </div>
+        <div class="d-flex gap-2 mt-3 mt-lg-0">
+            <a href="/farmer/model_evaluation" class="btn btn-outline-dark rounded-pill px-4">
+                <i class="fas fa-chart-line me-2"></i>Unseen Test Metrics
+            </a>
+            <a href="/farmer/pest_detection" class="btn btn-outline-success rounded-pill px-4">
+                <i class="fas fa-shield-virus me-2"></i>Farmer View
+            </a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Input & Upload Panel -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 rounded-4 p-4 h-100 bg-white">
+                <h5 class="fw-bold text-dark mb-3"><i class="fas fa-upload me-2 text-danger"></i>1. Upload Test Image</h5>
+                
+                <div class="p-4 border-2 border-dashed rounded-4 text-center mb-3" id="dropZone" style="cursor: pointer; background: #fdfdfd; border-color: #cbd5e1; transition: all 0.3s;">
+                    <input type="file" id="judgeFileInput" class="d-none" accept="image/*">
+                    <div id="dropPlaceholder">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-danger opacity-50 mb-3"></i>
+                        <h6 class="fw-bold text-dark mb-1">Drop image here or click to browse</h6>
+                        <p class="text-muted small mb-0">Accepts field photos, smartphone scans, healthy/diseased leaves (JPG, PNG)</p>
+                    </div>
+                    <div id="dropPreviewContainer" class="d-none">
+                        <img id="judgePreviewImg" src="" class="img-fluid rounded-3 mb-2 shadow-sm" style="max-height: 220px; object-fit: contain;">
+                        <div>
+                            <span class="badge bg-light text-dark border me-1" id="imgDimensionsBadge">-- x --</span>
+                            <button type="button" class="btn btn-sm btn-link text-danger text-decoration-none" id="clearImgBtn">Change Image</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary Context / Environmental Controls -->
+                <div class="card border rounded-3 p-3 mb-3 bg-light">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold small text-dark"><i class="fas fa-seedling me-1 text-success"></i> Field Agronomic Context (Soil, Season & Weather)</span>
+                        <span class="badge bg-success-subtle text-success small">Dynamic Advisory</span>
+                    </div>
+                    <p class="text-muted extra-small mb-3" style="font-size: 0.78rem;">
+                        Environmental and soil factors dynamically customize treatment protocols, dosage corrections, and application timing for your specific field conditions.
+                    </p>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label extra-small text-muted mb-1" style="font-size: 0.78rem;">Temperature (°C)</label>
+                            <input type="number" id="envTemp" class="form-control form-control-sm rounded-pill" placeholder="e.g. 26" value="26">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label extra-small text-muted mb-1" style="font-size: 0.78rem;">Relative Humidity (%)</label>
+                            <input type="number" id="envHumidity" class="form-control form-control-sm rounded-pill" placeholder="e.g. 82" value="82">
+                        </div>
+                        <div class="col-6 mt-2">
+                            <label class="form-label extra-small text-muted mb-1" style="font-size: 0.78rem;">Season (ऋतु)</label>
+                            <select id="envSeason" class="form-select form-select-sm rounded-pill">
+                                <option value="Kharif (Monsoon)">Kharif (Monsoon - खरीफ)</option>
+                                <option value="Rabi (Winter)">Rabi (Winter - रबी)</option>
+                                <option value="Zaid (Summer)">Zaid (Summer - जायद)</option>
+                            </select>
+                        </div>
+                        <div class="col-6 mt-2">
+                            <label class="form-label extra-small text-muted mb-1" style="font-size: 0.78rem;">Soil Type (मिट्टी)</label>
+                            <select id="envSoil" class="form-select form-select-sm rounded-pill">
+                                <option value="Alluvial Soil">Alluvial Soil (जलोढ़)</option>
+                                <option value="Black Cotton Soil">Black Cotton Soil (काली)</option>
+                                <option value="Red Soil">Red Soil (लाल)</option>
+                                <option value="Sandy Loam">Sandy Loam (बलुई दोमट)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="form-label extra-small text-muted mb-1" style="font-size: 0.78rem;">Soil Health / Nutrient Level (खाद संतुलन)</label>
+                            <select id="envNitrogen" class="form-select form-select-sm rounded-pill">
+                                <option value="Balanced NPK">Balanced NPK (संतुलित खाद)</option>
+                                <option value="Excess Nitrogen (High Disease Risk)">Excess Nitrogen / Urea (अत्यधिक यूरिया - उच्च रोग जोखिम)</option>
+                                <option value="Potassium Deficient">Potassium / Micronutrient Deficient (पोटैशियम कमी)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <label class="form-label extra-small text-muted mb-1" style="font-size: 0.78rem;">Expected Crop (Optional Hint)</label>
+                            <select id="cropHint" class="form-select form-select-sm rounded-pill">
+                                <option value="">Auto-Detect from Image</option>
+                                <option value="tomato">Tomato</option>
+                                <option value="potato">Potato</option>
+                                <option value="corn">Corn (Maize)</option>
+                                <option value="rice">Rice (Paddy)</option>
+                                <option value="pepper">Bell Pepper</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="runAnalysisBtn" class="btn btn-danger w-100 py-3 rounded-pill fw-bold shadow-sm" disabled>
+                    <i class="fas fa-search-plus me-2"></i>Run AI Diagnostic Pipeline
+                </button>
+            </div>
+        </div>
+
+        <!-- Output & Diagnostics Panel -->
+        <div class="col-lg-7">
+            <!-- Loading State -->
+            <div id="loadingCard" class="card shadow-sm border-0 rounded-4 p-5 text-center d-none h-100 justify-content-center align-items-center bg-white">
+                <div class="spinner-border text-danger mb-3" style="width: 3.5rem; height: 3.5rem;" role="status"></div>
+                <h5 class="fw-bold text-dark">Running 7-Stage Inspection Pipeline...</h5>
+                <p class="text-muted small mb-0">Quality gate check &rarr; Leaf boundary detection &rarr; ConvNeXt feature extraction &rarr; Softmax ranking &rarr; Grad-CAM backpropagation</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyCard" class="card shadow-sm border-0 rounded-4 p-5 text-center h-100 justify-content-center align-items-center bg-white border-dashed">
+                <i class="fas fa-microscope fa-4x text-muted opacity-25 mb-3"></i>
+                <h5 class="fw-bold text-muted">Awaiting Test Image</h5>
+                <p class="text-muted small mb-0">Upload or drag a leaf photo to trigger the real-time AI computer vision diagnosis.</p>
+            </div>
+
+            <!-- Diagnostic Results Card -->
+            <div id="resultsCard" class="d-none">
+                <!-- Quality Assessment Banner -->
+                <div class="card shadow-sm border-0 rounded-4 p-3 mb-3 bg-white">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge" id="qualityBadge">Quality Check</span>
+                            <span class="small text-muted" id="qualityDetails">Sharpness: -- | Lighting: --</span>
+                        </div>
+                        <div id="rejectionNotice"></div>
+                    </div>
+                    <div id="qualityWarningsList" class="mt-2 text-danger small"></div>
+                </div>
+
+                <!-- Primary Diagnosis Card -->
+                <div class="card shadow-sm border-0 rounded-4 p-4 mb-3 bg-white border-start border-5 border-danger">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-secondary-subtle text-secondary mb-1" id="diagCropBadge">Crop: --</span>
+                            <h3 class="fw-bold text-dark mb-0" id="diagDiseaseName">--</h3>
+                            <div class="text-muted small mt-1" id="diagHindiName">--</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="fs-2 fw-bold text-danger" id="diagConfidence">--%</div>
+                            <span class="badge" id="diagSeverityBadge">Severity: --</span>
+                        </div>
+                    </div>
+
+                    <div class="progress mb-3" style="height: 8px;">
+                        <div id="confidenceBar" class="progress-bar bg-danger" role="progressbar" style="width: 0%;"></div>
+                    </div>
+
+                    <!-- Top 3 Probability Breakdown -->
+                    <div class="p-3 bg-light rounded-3 mb-3">
+                        <h6 class="fw-bold small text-dark mb-2"><i class="fas fa-list-ol me-1 text-danger"></i> Top-3 Candidate Ranking (Softmax Distribution)</h6>
+                        <div id="top3Container"></div>
+                    </div>
+
+                    <!-- Grad-CAM & Hotspot Visualizer -->
+                    <div class="card border rounded-3 p-3 mb-3 bg-light">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="fw-bold small text-dark mb-0"><i class="fas fa-fire me-1 text-danger"></i> Grad-CAM Pathological Saliency Map</h6>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-danger active" id="viewOverlayBtn">Heatmap Overlay</button>
+                                <button type="button" class="btn btn-outline-secondary" id="viewOriginalBtn">Original Image</button>
+                            </div>
+                        </div>
+                        <p class="text-muted extra-small mb-2" style="font-size: 0.78rem;">
+                            Red & yellow regions indicate the precise leaf lesion patterns that drove the neural network's decision.
+                        </p>
+                        <div class="text-center position-relative">
+                            <img id="gradcamImg" src="" class="img-fluid rounded-3 shadow-sm border" style="max-height: 280px; object-fit: contain;">
+                            <img id="originalCompareImg" src="" class="img-fluid rounded-3 shadow-sm border d-none" style="max-height: 280px; object-fit: contain;">
+                        </div>
+                    </div>
+
+                    <!-- Actionable Certified Agronomic Recommendations -->
+                    <div class="row g-2 small">
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <strong class="text-danger"><i class="fas fa-question-circle me-1"></i> Why (कारण):</strong>
+                                <p class="mb-0 text-muted mt-1" id="recWhy">--</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <strong class="text-primary"><i class="fas fa-prescription-bottle-alt me-1"></i> Treatment (कीटनाशक दवा):</strong>
+                                <p class="mb-0 text-dark fw-bold mt-1" id="recTreatment">--</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <strong class="text-info"><i class="fas fa-balance-scale me-1"></i> Dosage (मात्रा):</strong>
+                                <p class="mb-0 text-dark mt-1" id="recQuantity">--</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <strong class="text-secondary"><i class="fas fa-spray-can me-1"></i> Application Method (छिड़काव विधि):</strong>
+                                <p class="mb-0 text-dark mt-1" id="recHow">--</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border h-100">
+                                <strong class="text-warning"><i class="fas fa-clock me-1"></i> Optimal Timing (सही समय):</strong>
+                                <p class="mb-0 text-dark mt-1" id="recWhen">--</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <strong class="text-success"><i class="fas fa-shield-alt me-1"></i> Prevention & Sanitation (बचाव के उपाय):</strong>
+                                <p class="mb-0 text-dark mt-1" id="recPrevention">--</p>
+                            </div>
+                        </div>
+                        <!-- Environmental Factor Note -->
+                        <div class="col-12 d-none" id="envNoteCol">
+                            <div class="p-3 bg-warning-subtle border border-warning rounded-3">
+                                <strong class="text-dark"><i class="fas fa-temperature-high me-1 text-danger"></i> Environmental Risk Correlation:</strong>
+                                <p class="mb-0 text-dark small mt-1" id="recEnvDetails">--</p>
+                            </div>
+                        </div>
+
+
+                        <!-- Soil & Season Multi-Factor Agronomic Correlation Card -->
+                        <div class="col-12 mt-2" id="soilSeasonCardCol">
+                            <div class="p-3 bg-primary-subtle border border-primary rounded-3">
+                                <strong class="text-primary"><i class="fas fa-seedling me-1"></i> Soil & Season Multi-Factor Correlation (मिट्टी व मौसम प्रभाव):</strong>
+                                <div class="text-dark small mt-2" id="soilSeasonNotes">--</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('judgeFileInput');
+const placeholder = document.getElementById('dropPlaceholder');
+const previewContainer = document.getElementById('dropPreviewContainer');
+const previewImg = document.getElementById('judgePreviewImg');
+const runBtn = document.getElementById('runAnalysisBtn');
+const clearBtn = document.getElementById('clearImgBtn');
+
+dropZone.onclick = () => fileInput.click();
+
+fileInput.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+            previewImg.src = reader.result;
+            placeholder.classList.add('d-none');
+            previewContainer.classList.remove('d-none');
+            runBtn.disabled = false;
+            
+            const tempImg = new Image();
+            tempImg.src = reader.result;
+            tempImg.onload = () => {
+                document.getElementById('imgDimensionsBadge').innerText = `${tempImg.naturalWidth} x ${tempImg.naturalHeight} px`;
+            };
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+clearBtn.onclick = (e) => {
+    e.stopPropagation();
+    fileInput.value = '';
+    placeholder.classList.remove('d-none');
+    previewContainer.classList.add('d-none');
+    runBtn.disabled = true;
+};
+
+// Drag & drop highlight
+['dragenter', 'dragover'].forEach(name => {
+    dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#dc2626';
+        dropZone.style.background = '#fef2f2';
+    });
+});
+['dragleave', 'drop'].forEach(name => {
+    dropZone.addEventListener(name, (e) => {
+        e.preventDefault();
+        dropZone.style.borderColor = '#cbd5e1';
+        dropZone.style.background = '#fdfdfd';
+    });
+});
+dropZone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+        fileInput.dispatchEvent(new Event('change'));
+    }
+});
+
+// Grad-CAM View Toggle
+document.getElementById('viewOverlayBtn').onclick = () => {
+    document.getElementById('viewOverlayBtn').classList.add('active');
+    document.getElementById('viewOriginalBtn').classList.remove('active');
+    document.getElementById('gradcamImg').classList.remove('d-none');
+    document.getElementById('originalCompareImg').classList.add('d-none');
+};
+document.getElementById('viewOriginalBtn').onclick = () => {
+    document.getElementById('viewOriginalBtn').classList.add('active');
+    document.getElementById('viewOverlayBtn').classList.remove('active');
+    document.getElementById('gradcamImg').classList.add('d-none');
+    document.getElementById('originalCompareImg').classList.remove('d-none');
+};
+
+// Run Pipeline
+runBtn.onclick = async () => {
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    document.getElementById('emptyCard').classList.add('d-none');
+    document.getElementById('resultsCard').classList.add('d-none');
+    document.getElementById('loadingCard').classList.remove('d-none');
+
+    const formData = new FormData();
+    formData.append('image', file);
+    const cropHint = document.getElementById('cropHint').value;
+    if (cropHint) formData.append('crop_hint', cropHint);
+    const temp = document.getElementById('envTemp').value;
+    if (temp) formData.append('temperature', temp);
+    const hum = document.getElementById('envHumidity').value;
+    if (hum) formData.append('humidity', hum);
+    const season = document.getElementById('envSeason').value;
+    if (season) formData.append('season', season);
+    const soil = document.getElementById('envSoil').value;
+    if (soil) formData.append('soil_type', soil);
+    const nitrogen = document.getElementById('envNitrogen').value;
+    if (nitrogen) formData.append('nitrogen_status', nitrogen);
+
+    try {
+        // Direct call to FastAPI or fallback via Express
+        let response;
+        try {
+            response = await fetch('http://127.0.0.1:8000/predict', {
+                method: 'POST',
+                body: formData
+            });
+        } catch (e) {
+            // Express proxy fallback
+            response = await fetch('/actions/pest_ai_action.php', {
+                method: 'POST',
+                body: formData
+            });
+        }
+
+        const data = await response.json();
+        document.getElementById('loadingCard').classList.add('d-none');
+        document.getElementById('resultsCard').classList.remove('d-none');
+
+        // Populate Quality Gate
+        const q = data.quality || {};
+        const qBadge = document.getElementById('qualityBadge');
+        qBadge.className = 'badge ' + (q.is_acceptable ? 'bg-success' : 'bg-danger');
+        qBadge.innerText = q.quality_tier || (q.is_acceptable ? 'Acceptable Quality' : 'Unacceptable');
+        document.getElementById('qualityDetails').innerText = `Sharpness: ${q.sharpness_score || '--'} (Min: 40) | Brightness: ${q.brightness_score || '--'}/255 | Leaf Ratio: ${Math.round((q.leaf_pixel_ratio||0)*100)}%`;
+
+        const warningsDiv = document.getElementById('qualityWarningsList');
+        warningsDiv.innerHTML = '';
+        if (q.warnings && q.warnings.length > 0) {
+            q.warnings.forEach(w => {
+                warningsDiv.innerHTML += `<div><i class="fas fa-exclamation-triangle me-1"></i> ${w}</div>`;
+            });
+        }
+
+        // Rejection Check
+        const rejNotice = document.getElementById('rejectionNotice');
+        if (data.is_rejected) {
+            rejNotice.innerHTML = `<span class="badge bg-warning text-dark px-3 py-2"><i class="fas fa-ban me-1"></i> Sample Rejected: ${data.rejection_reason}</span>`;
+            if (data.warning) {
+                warningsDiv.innerHTML += `<div class="fw-bold mt-1 text-danger"><i class="fas fa-exclamation-circle me-1"></i> ${data.warning}</div>`;
+            }
+        } else {
+            rejNotice.innerHTML = `<span class="badge bg-success-subtle text-success px-3 py-2"><i class="fas fa-check-circle me-1"></i> Validated Foliage Sample</span>`;
+        }
+
+        // Primary Diagnosis
+        const diag = data.primary_diagnosis || {};
+        const diagCard = document.querySelector('#resultsCard .border-start');
+        const organText = data.organ_info?.organ_type ? ` &bull; ${data.organ_info.organ_type}` : '';
+        
+        if (data.is_rejected) {
+            diagCard.className = 'card shadow-sm border-0 rounded-4 p-4 mb-3 bg-white border-start border-5 border-warning';
+            document.getElementById('diagCropBadge').innerHTML = `<span class="badge bg-warning text-dark me-1">INCONCLUSIVE</span> Crop: ${diag.crop || '--'}${organText} <span class="text-muted">(Weak Candidate)</span>`;
+            document.getElementById('diagDiseaseName').innerHTML = `<span class="text-muted text-decoration-line-through me-2">${diag.disease || data.name || '--'}</span> <span class="badge bg-warning text-dark fs-6 align-middle">Diagnosis Rejected</span>`;
+            document.getElementById('diagHindiName').innerText = 'अस्पष्ट लक्षण - कृपया सटीक रोग निदान के लिए पत्ती की नज़दीकी फ़ोटो लें या फ़सल चुनें।';
+            document.getElementById('diagConfidence').className = 'fs-2 fw-bold text-warning';
+            document.getElementById('confidenceBar').className = 'progress-bar bg-warning';
+        } else {
+            diagCard.className = 'card shadow-sm border-0 rounded-4 p-4 mb-3 bg-white border-start border-5 border-danger';
+            document.getElementById('diagCropBadge').innerHTML = `Crop: ${diag.crop || '--'}${organText}`;
+            document.getElementById('diagDiseaseName').innerText = diag.disease || data.name || '--';
+            document.getElementById('diagHindiName').innerText = diag.hindi_name || '';
+            document.getElementById('diagConfidence').className = 'fs-2 fw-bold text-danger';
+            document.getElementById('confidenceBar').className = 'progress-bar bg-danger';
+        }
+        
+        document.getElementById('diagConfidence').innerText = `${diag.confidence || data.confidence || 0}%`;
+
+        const confBar = document.getElementById('confidenceBar');
+        confBar.style.width = `${diag.confidence || data.confidence || 0}%`;
+
+        const sevBadge = document.getElementById('diagSeverityBadge');
+        if (data.is_rejected) {
+            sevBadge.className = 'badge bg-secondary';
+            sevBadge.innerText = 'Unverified (Rejected)';
+        } else {
+            sevBadge.className = 'badge ' + (diag.severity && diag.severity.includes('Critical') ? 'bg-danger' : (diag.severity && diag.severity.includes('High') ? 'bg-warning text-dark' : 'bg-info text-dark'));
+            sevBadge.innerText = diag.severity || '--';
+        }
+
+        // Top 3 Ranking
+        const top3Div = document.getElementById('top3Container');
+        top3Div.innerHTML = '';
+        if (data.top_predictions && data.top_predictions.length > 0) {
+            data.top_predictions.forEach((p, idx) => {
+                const color = idx === 0 ? 'bg-danger' : (idx === 1 ? 'bg-warning' : 'bg-secondary');
+                top3Div.innerHTML += `
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span><strong>#${idx+1}</strong> ${p.crop} &bull; ${p.disease}</span>
+                            <span class="fw-bold">${p.confidence}%</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar ${color}" style="width: ${p.confidence}%;"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Grad-CAM Visual
+        if (data.gradcam && data.gradcam.heatmap_base64) {
+            document.getElementById('gradcamImg').src = data.gradcam.heatmap_base64;
+            document.getElementById('originalCompareImg').src = previewImg.src;
+        } else {
+            document.getElementById('gradcamImg').src = previewImg.src;
+            document.getElementById('originalCompareImg').src = previewImg.src;
+        }
+
+        // Agronomic Recommendations
+        document.getElementById('recWhy').innerText = diag.why || data.why || '--';
+        document.getElementById('recTreatment').innerText = diag.treatment || data.treatment || '--';
+        document.getElementById('recQuantity').innerText = diag.quantity || data.quantity || '--';
+        document.getElementById('recHow').innerText = diag.how || data.how || '--';
+        document.getElementById('recWhen').innerText = diag.when || data.when || '--';
+        document.getElementById('recPrevention').innerText = diag.prevention || data.prevention || '--';
+
+        // Environmental Context
+        const envCol = document.getElementById('envNoteCol');
+        if (diag.environmental_risk) {
+            envCol.classList.remove('d-none');
+            document.getElementById('recEnvDetails').innerText = `${diag.environmental_risk.details} (${diag.environmental_risk.scientific_basis})`;
+        } else {
+            envCol.classList.add('d-none');
+        }
+
+
+        // Soil & Season Correlation Model
+        const agro = diag.agronomic_context || data.agronomic_context;
+        if (agro && agro.correlation_notes_hi && agro.correlation_notes_hi.length > 0) {
+            document.getElementById('soilSeasonCardCol').classList.remove('d-none');
+            let notesHtml = `<div class="mb-1 text-dark fw-bold"><i class="fas fa-check-circle text-primary me-1"></i> Season: ${agro.season_selected} | Soil: ${agro.soil_type_selected} | Nutrient: ${agro.nitrogen_status_selected}</div>`;
+            agro.correlation_notes_hi.forEach(n => {
+                notesHtml += `<div class="mt-1"><i class="fas fa-angle-right text-primary me-1"></i> ${n}</div>`;
+            });
+            document.getElementById('soilSeasonNotes').innerHTML = notesHtml;
+        }
+
+    } catch (err) {
+        document.getElementById('loadingCard').classList.add('d-none');
+        document.getElementById('emptyCard').classList.remove('d-none');
+        alert('Diagnostic service error: ' + err.message);
+    }
+};
+</script>
+
+<%- include('../partials/footer') %>

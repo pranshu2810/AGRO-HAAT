@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Agro-Haat 2.0</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Glassmorphism Auth Stylesheet -->
+    <link rel="stylesheet" href="/css/auth.css?v=2">
+</head>
+<body class="auth-page">
+    <!-- Back to Home Floating Pill Button -->
+    <a href="/" class="btn-auth-home" title="Back to Homepage">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span>Home</span>
+    </a>
+
+    <!-- Centered Glassmorphism Box -->
+    <div class="auth-wrapper">
+        <div class="auth-glass-box">
+            <!-- Brand Header -->
+            <div class="auth-header">
+                <div class="auth-logo-badge">
+                    <i class="fa-solid fa-leaf"></i>
+                </div>
+                <div class="auth-brand-name">AGRO<span>HAAT</span></div>
+                <h1 class="auth-title">Welcome Back</h1>
+                <p class="auth-subtitle">AI-Powered Smart Farming & Direct Marketplace</p>
+            </div>
+
+            <!-- Server Flash Message / Alerts -->
+            <% if (typeof msg !== 'undefined' && msg) { %>
+                <div class="auth-alert auth-alert-<%= (typeof msg_type !== 'undefined' && msg_type) ? msg_type : 'info' %>">
+                    <%= msg %>
+                </div>
+            <% } %>
+
+            <!-- Sign In Form -->
+            <form action="/actions/login_action.php" method="POST">
+                <div class="form-group-item">
+                    <label for="loginEmail"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                    <div class="input-icon-wrap">
+                        <input type="email" id="loginEmail" name="email" placeholder="name@example.com" required autocomplete="email">
+                        <i class="fa-solid fa-at"></i>
+                    </div>
+                </div>
+
+                <div class="form-group-item">
+                    <label for="loginPassword"><i class="fa-solid fa-lock"></i> Password</label>
+                    <div class="input-icon-wrap">
+                        <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required autocomplete="current-password">
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth-submit">
+                    <span>Sign In</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- Links -->
+            <div class="auth-extra-links">
+                <p>New to Agro-Haat? <a href="/register" class="auth-link">Create Account</a></p>
+                <a href="#" id="showForgot" class="auth-forgot-link">
+                    <i class="fa-solid fa-unlock-keyhole"></i> Forgot Password?
+                </a>
+            </div>
+
+            <!-- Forgot Password Modal Box -->
+            <div id="forgotBox" class="modal">
+                <div class="modal-box">
+                    <span class="close"><i class="fa-solid fa-xmark"></i></span>
+                    <h4><i class="fa-solid fa-shield-halved"></i> Reset Password</h4>
+                    <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); text-align: center; margin-bottom: 16px;">
+                        Enter your registered email to receive verification code.
+                    </p>
+                    
+                    <div id="resetResult" style="margin-bottom:15px; font-weight:bold; font-size:14px; text-align:center;"></div>
+
+                    <!-- Step 1: Send OTP -->
+                    <form id="forgotForm">
+                        <div class="form-group-item">
+                            <label for="forgotEmail"><i class="fa-solid fa-envelope"></i> Registered Email</label>
+                            <div class="input-icon-wrap">
+                                <input type="email" id="forgotEmail" name="email" placeholder="Enter your registered email" required>
+                                <i class="fa-solid fa-at"></i>
+                            </div>
+                        </div>
+                        <button type="submit" id="sendOtpBtn" class="btn-auth-submit">
+                            Send Verification OTP
+                        </button>
+                    </form>
+
+                    <!-- Step 2: Verify OTP & New Password -->
+                    <form id="resetForm" style="display:none; margin-top:15px;">
+                        <input type="hidden" id="resetEmail" name="email">
+                        
+                        <div class="form-group-item">
+                            <label for="otpCode"><i class="fa-solid fa-hashtag"></i> 6-Digit OTP Code</label>
+                            <div class="input-icon-wrap">
+                                <input type="text" id="otpCode" name="otp" placeholder="e.g. 482910" required maxlength="6" style="text-align:center; letter-spacing: 3px; font-weight: bold;">
+                                <i class="fa-solid fa-shield"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group-item">
+                            <label for="newPassword"><i class="fa-solid fa-lock"></i> New Password</label>
+                            <div class="input-icon-wrap">
+                                <input type="password" id="newPassword" name="new_password" placeholder="Enter new password" required>
+                                <i class="fa-solid fa-key"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group-item">
+                            <label for="confirmPassword"><i class="fa-solid fa-lock"></i> Confirm New Password</label>
+                            <div class="input-icon-wrap">
+                                <input type="password" id="confirmPassword" placeholder="Confirm new password" required>
+                                <i class="fa-solid fa-check-double"></i>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" id="resetPassBtn" class="btn-auth-submit" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            Reset & Save Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/js/logic.js?v=3"></script>
+    <script>
+        if (window.location.search.includes('forgot=1')) {
+            setTimeout(() => {
+                const modal = document.getElementById('forgotBox');
+                if (modal) modal.style.display = 'flex';
+            }, 300);
+        }
+    </script>
+</body>
+</html>

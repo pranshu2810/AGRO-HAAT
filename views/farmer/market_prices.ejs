@@ -1,0 +1,1616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= typeof page_title !== 'undefined' ? page_title : 'Market Intelligence - Agro-Haat' %></title>
+    <!-- Google Fonts & CDN Dependencies -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/public/css/premium.css">
+    <!-- Chart.js for Historical Price Trends -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --primary-emerald: #10b981;
+            --primary-dark: #064e3b;
+            --primary-navy: #0f172a;
+            --surface-bg: #f8fafc;
+            --card-border: #e2e8f0;
+            --accent-blue: #2563eb;
+            --accent-amber: #d97706;
+            --accent-rose: #e11d48;
+        }
+
+        body {
+            background-color: var(--surface-bg);
+            font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        .navbar-market {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            box-shadow: 0 4px 20px rgba(6, 78, 59, 0.15);
+        }
+
+        .gov-pill {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 999px;
+            padding: 4px 12px;
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+            border-radius: 20px;
+            color: white;
+            padding: 2.2rem 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(6, 78, 59, 0.12);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .status-bar {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 0.85rem 1.4rem;
+            margin-bottom: 1.8rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .status-dot.live { background-color: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
+        .status-dot.cached { background-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2); }
+
+        .filter-panel {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 2rem;
+        }
+
+        .filter-section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .crop-chip, .price-preset-chip {
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #475569;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 5px 13px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .crop-chip:hover, .price-preset-chip:hover {
+            border-color: var(--primary-emerald);
+            color: var(--primary-dark);
+            background: #ecfdf5;
+        }
+        .crop-chip.active, .price-preset-chip.active {
+            background: #10b981;
+            color: #ffffff;
+            border-color: #10b981;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .kpi-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.25rem 1.4rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            height: 100%;
+        }
+        .kpi-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+
+        .kpi-title {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            margin-bottom: 0.4rem;
+        }
+        .kpi-value {
+            font-size: 1.65rem;
+            font-weight: 800;
+            color: var(--primary-navy);
+            margin-bottom: 0.2rem;
+            line-height: 1.2;
+        }
+        .kpi-sub {
+            font-size: 0.78rem;
+            color: #64748b;
+        }
+
+        .mandi-table-card {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+        }
+
+        .table-custom thead {
+            background: #f1f5f9;
+        }
+        .table-custom th {
+            font-size: 0.76rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #475569;
+            padding: 1rem 0.85rem;
+            border-bottom: 2px solid var(--card-border);
+            white-space: nowrap;
+            user-select: none;
+        }
+        .table-custom th.sortable {
+            cursor: pointer;
+            transition: color 0.15s ease;
+        }
+        .table-custom th.sortable:hover {
+            color: var(--primary-dark);
+            background-color: #e2e8f0;
+        }
+        .table-custom td {
+            font-size: 0.88rem;
+            padding: 1rem 0.85rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .table-custom tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        .price-badge {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            background: #ecfdf5;
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .msp-badge-above {
+            background: #ecfdf5;
+            color: #047857;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+        .msp-badge-below {
+            background: #fef2f2;
+            color: #b91c1c;
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+        }
+
+        .analytics-box {
+            background: #ffffff;
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 2rem;
+        }
+
+        .disclaimer-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #64748b;
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            font-size: 0.78rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-market navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center fw-bold" href="/farmer/dashboard">
+                <i class="fas fa-arrow-left me-2"></i>
+                <span>Agro-Haat Farmer Portal</span>
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="gov-pill d-none d-md-inline-flex align-items-center">
+                    <i class="fas fa-landmark me-1 text-warning"></i> Agmarknet 2.0 Official GoI Data
+                </span>
+                <span class="badge bg-light text-success fw-bold px-3 py-2 rounded-pill">
+                    <i class="fas fa-user-circle me-1"></i> <%= user ? (user.fullname || 'Farmer') : 'Farmer' %>
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+
+        <!-- Hero Title Banner -->
+        <div class="hero-banner">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <span class="badge bg-success-subtle text-white border border-success-subtle px-3 py-1 rounded-pill mb-2">
+                        <i class="fas fa-shield-halved me-1 text-warning"></i> Official Agmarknet 2.0 Integration
+                    </span>
+                    <h1 class="h2 fw-bold mb-2">Agricultural Market Intelligence & Mandi Rates 📈</h1>
+                    <p class="mb-0 text-white-50 lead fs-6">
+                        Real-time wholesale prices, market arrivals, and actionable selling insights directly sourced from the Ministry of Agriculture & Farmers Welfare, Government of India.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <button class="btn btn-light btn-sm px-3 py-2 rounded-pill fw-bold text-success shadow-sm" onclick="triggerManualRefresh()">
+                        <i class="fas fa-rotate me-1" id="refreshIcon"></i> Refresh Government Data
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Official Status & Data Freshness Bar -->
+        <div class="status-bar d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-2">
+                <span class="status-dot <%= (marketData && marketData.from_cache) ? 'cached' : 'live' %>" id="statusDot"></span>
+                <span class="small fw-bold text-dark">Data Source:</span>
+                <span class="small text-muted" id="sourceLabel">
+                    <%= (marketData && marketData.source) ? marketData.source : 'Agmarknet 2.0 - Directorate of Marketing & Inspection, GoI' %>
+                </span>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-3 small text-muted">
+                <div>
+                    <i class="far fa-calendar-check me-1 text-success"></i>
+                    <span>Reporting Date: </span>
+                    <strong class="text-dark" id="displayReportDate">
+                        <%= (marketData && marketData.reporting_date) ? marketData.reporting_date : 'Latest Available' %>
+                    </strong>
+                </div>
+                <div>
+                    <i class="far fa-clock me-1 text-primary"></i>
+                    <span>Fetched: </span>
+                    <strong class="text-dark" id="displayFetchedAt">
+                        <%= (marketData && marketData.fetched_at) ? new Date(marketData.fetched_at).toLocaleTimeString('en-IN') : 'Just now' %>
+                    </strong>
+                </div>
+                <div id="cacheBadgeContainer">
+                    <% if (marketData && marketData.from_cache) { %>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
+                            <i class="fas fa-bolt me-1"></i> Cached (TTL: 15m)
+                        </span>
+                    <% } else { %>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">
+                            <i class="fas fa-circle-check me-1"></i> Verified Live Feed
+                        </span>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning / Error Alerts -->
+        <% if (errorMessage) { %>
+            <div class="alert alert-danger alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-triangle-exclamation fs-4 me-3 text-danger"></i>
+                    <div>
+                        <strong>Upstream Notice: </strong> <%= errorMessage %>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+
+        <% if (marketData && marketData.warning) { %>
+            <div class="alert alert-warning alert-dismissible fade show rounded-4 shadow-sm" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-info-circle fs-4 me-3 text-warning"></i>
+                    <div>
+                        <strong>Notice: </strong> <%= marketData.warning %>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        <% } %>
+
+        <!-- Filter & Search Controls Panel -->
+        <div class="filter-panel">
+            <!-- Row 1: Commodity Quick Chips -->
+            <div class="mb-3">
+                <div class="filter-section-title">
+                    <i class="fas fa-wheat-awn me-1 text-success"></i> Select Commodity:
+                </div>
+                <div class="d-flex flex-wrap gap-2" id="popularChipsContainer">
+                    <% const topCrops = ['Wheat', 'Rice', 'Basmati Rice', 'Potato', 'Onion', 'Tomato', 'Mustard', 'Cotton', 'Maize', 'Soyabean']; %>
+                    <% topCrops.forEach(crop => { %>
+                        <button type="button" 
+                                class="crop-chip <%= (selectedCommodity && selectedCommodity.toLowerCase() === crop.toLowerCase()) ? 'active' : '' %>"
+                                onclick="selectCommodityChip('<%= crop %>')">
+                            <%= crop %>
+                        </button>
+                    <% }); %>
+                </div>
+            </div>
+
+            <!-- Row 2: Price Range Quick Presets -->
+            <div class="mb-3">
+                <div class="filter-section-title">
+                    <i class="fas fa-indian-rupee-sign me-1 text-primary"></i> Price Range Presets:
+                </div>
+                <div class="d-flex flex-wrap gap-2" id="pricePresetContainer">
+                    <button type="button" class="price-preset-chip active" onclick="setPricePreset(null, null, this)">All Prices</button>
+                    <button type="button" class="price-preset-chip" onclick="setPricePreset(null, 2500, this)">&lt; ₹2,500</button>
+                    <button type="button" class="price-preset-chip" onclick="setPricePreset(2500, 3000, this)">₹2,500 - ₹3,000</button>
+                    <button type="button" class="price-preset-chip" onclick="setPricePreset(3000, 3500, this)">₹3,000 - ₹3,500</button>
+                    <button type="button" class="price-preset-chip" onclick="setPricePreset(3500, null, this)">&gt; ₹3,500</button>
+                </div>
+            </div>
+
+            <hr class="my-3 text-muted opacity-25">
+
+            <!-- Row 3: Dropdown & Input Filters Grid -->
+            <form id="filterForm" onsubmit="event.preventDefault(); applyFilters();">
+                <div class="row g-3 align-items-end">
+                    <!-- Commodity Select -->
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-dark mb-1">Commodity / Crop</label>
+                        <select class="form-select form-select-sm rounded-3 shadow-none" id="commoditySelect" name="commodity" onchange="applyFilters()">
+                            <% if (commodities && commodities.length > 0) { %>
+                                <% commodities.forEach(c => { %>
+                                    <option value="<%= c.name %>" <%= (selectedCommodity && selectedCommodity.toLowerCase() === c.name.toLowerCase()) ? 'selected' : '' %>>
+                                        <%= c.name %>
+                                    </option>
+                                <% }); %>
+                            <% } else { %>
+                                <option value="Wheat">Wheat</option>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <!-- State Select -->
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark mb-1">State</label>
+                        <select class="form-select form-select-sm rounded-3 shadow-none" id="stateSelect" name="state" onchange="onStateChange()">
+                            <option value="">All States</option>
+                            <% if (states && states.length > 0) { %>
+                                <% states.forEach(s => { %>
+                                    <option value="<%= s.id %>" <%= (selectedState == s.id) ? 'selected' : '' %>>
+                                        <%= s.name %>
+                                    </option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                    </div>
+
+                    <!-- District Select (Cascading) -->
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark mb-1">District</label>
+                        <select class="form-select form-select-sm rounded-3 shadow-none" id="districtSelect" name="district" onchange="onDistrictChange()" <%= selectedState ? '' : 'disabled' %>>
+                            <option value="">All Districts</option>
+                        </select>
+                    </div>
+
+                    <!-- Mandi Select (Cascading) -->
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark mb-1">Mandi / Market</label>
+                        <select class="form-select form-select-sm rounded-3 shadow-none" id="marketSelect" name="market" onchange="applyFilters()" <%= selectedDistrict ? '' : 'disabled' %>>
+                            <option value="">All Mandis</option>
+                        </select>
+                    </div>
+
+                    <!-- Reporting Date -->
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold text-dark mb-1">Reporting Date</label>
+                        <input type="date" class="form-control form-control-sm rounded-3 shadow-none" id="dateInput" name="date" value="<%= selectedDate || '' %>" onchange="applyFilters()">
+                    </div>
+                </div>
+
+                <!-- Row 4: Dedicated Price Range & Sorting Filters -->
+                <div class="row g-3 mt-1 align-items-end">
+                    <!-- Min Price Filter -->
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark mb-1">Min Price (₹/qtl)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">₹</span>
+                            <input type="number" class="form-control shadow-none" id="minPriceInput" placeholder="Min (e.g. 2500)" value="<%= selectedMinPrice || '' %>" oninput="filterTableLocally()">
+                        </div>
+                    </div>
+
+                    <!-- Max Price Filter -->
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark mb-1">Max Price (₹/qtl)</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-light text-muted">₹</span>
+                            <input type="number" class="form-control shadow-none" id="maxPriceInput" placeholder="Max (e.g. 3500)" value="<%= selectedMaxPrice || '' %>" oninput="filterTableLocally()">
+                        </div>
+                    </div>
+
+                    <!-- Sort By Dropdown -->
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold text-dark mb-1">Sort Mandis By</label>
+                        <select class="form-select form-select-sm rounded-3 shadow-none" id="sortBySelect" onchange="sortAndRenderTable()">
+                            <option value="price_desc" <%= (selectedSortBy === 'price_desc') ? 'selected' : '' %>>Price: High to Low</option>
+                            <option value="price_asc" <%= (selectedSortBy === 'price_asc') ? 'selected' : '' %>>Price: Low to High</option>
+                            <option value="arrivals_desc" <%= (selectedSortBy === 'arrivals_desc') ? 'selected' : '' %>>Arrivals: High to Low</option>
+                            <option value="market_asc" <%= (selectedSortBy === 'market_asc') ? 'selected' : '' %>>Mandi Name (A to Z)</option>
+                            <option value="spread_desc" <%= (selectedSortBy === 'spread_desc') ? 'selected' : '' %>>Price Spread: High to Low</option>
+                        </select>
+                    </div>
+
+                    <!-- Search Input (Supports Price and Text) -->
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-dark mb-1">Search Mandi or Specific Rate</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white text-muted"><i class="fas fa-search"></i></span>
+                            <input type="text" class="form-control shadow-none" id="searchInput" 
+                                   placeholder="Search by price (e.g. 2800, >2500, 2500-3000), mandi, or variety..." 
+                                   value="<%= searchQuery || '' %>" 
+                                   oninput="filterTableLocally()" 
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault(); applyFilters();}">
+                            <button type="button" class="btn btn-light border text-muted" onclick="clearSearchInput()" title="Clear search">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="col-md-2 text-md-end">
+                        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 me-1" onclick="resetFilters()">
+                            <i class="fas fa-undo me-1"></i> Reset
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm" onclick="applyFilters()">
+                            <i class="fas fa-filter me-1"></i> Apply Filter
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- 5 Actionable Intelligence KPI Cards (Dynamically Recalculated on Filter) -->
+        <% const analytics = (marketData && marketData.analytics) ? marketData.analytics : {}; %>
+        <div class="row g-3 mb-4">
+            <!-- Highest Reported Mandi -->
+            <div class="col-md-6 col-lg-3">
+                <div class="kpi-card border-top border-4 border-success">
+                    <div class="kpi-title text-success">
+                        <i class="fas fa-arrow-trend-up me-1"></i> Highest Mandi Rate
+                    </div>
+                    <div class="kpi-value text-success" id="kpiHighestPrice">
+                        ₹<%= analytics.highest_price ? Number(analytics.highest_price.price).toLocaleString('en-IN') : '—' %>
+                    </div>
+                    <div class="kpi-sub" id="kpiHighestMandi">
+                        <%= analytics.highest_price ? `${analytics.highest_price.market} (${analytics.highest_price.state})` : 'Awaiting data' %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lowest Reported Mandi -->
+            <div class="col-md-6 col-lg-3">
+                <div class="kpi-card border-top border-4 border-danger">
+                    <div class="kpi-title text-danger">
+                        <i class="fas fa-arrow-trend-down me-1"></i> Lowest Mandi Rate
+                    </div>
+                    <div class="kpi-value text-danger" id="kpiLowestPrice">
+                        ₹<%= analytics.lowest_price ? Number(analytics.lowest_price.price).toLocaleString('en-IN') : '—' %>
+                    </div>
+                    <div class="kpi-sub" id="kpiLowestMandi">
+                        <%= analytics.lowest_price ? `${analytics.lowest_price.market} (${analytics.lowest_price.state})` : 'Awaiting data' %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Price Spread & Opportunity -->
+            <div class="col-md-6 col-lg-2">
+                <div class="kpi-card border-top border-4 border-primary">
+                    <div class="kpi-title text-primary">
+                        <i class="fas fa-arrows-split-up-and-left me-1"></i> Price Spread
+                    </div>
+                    <div class="kpi-value text-primary" id="kpiPriceSpread">
+                        ₹<%= analytics.price_spread ? Number(analytics.price_spread).toLocaleString('en-IN') : '—' %>
+                    </div>
+                    <div class="kpi-sub" id="kpiSpreadPct">
+                        <%= analytics.spread_percentage ? `Gap: ${analytics.spread_percentage}%` : '0% spread' %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Benchmark Average Rate -->
+            <div class="col-md-6 col-lg-2">
+                <div class="kpi-card border-top border-4 border-info">
+                    <div class="kpi-title text-info">
+                        <i class="fas fa-scale-balanced me-1"></i> Modal Average
+                    </div>
+                    <div class="kpi-value text-dark" id="kpiAvgPrice">
+                        ₹<%= analytics.national_modal_avg ? Number(analytics.national_modal_avg).toLocaleString('en-IN') : '—' %>
+                    </div>
+                    <div class="kpi-sub" id="kpiReportingCount">
+                        <%= analytics.reporting_mandis_count ? `${analytics.reporting_mandis_count} Mandis Reporting` : 'Benchmark average' %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Market Arrivals -->
+            <div class="col-md-12 col-lg-2">
+                <div class="kpi-card border-top border-4 border-warning">
+                    <div class="kpi-title text-warning">
+                        <i class="fas fa-truck-ramp-box me-1"></i> Total Arrivals
+                    </div>
+                    <div class="kpi-value text-dark" id="kpiTotalArrivals">
+                        <%= analytics.total_arrivals ? Number(analytics.total_arrivals).toLocaleString('en-IN') : '0' %>
+                    </div>
+                    <div class="kpi-sub" id="kpiArrivalsUnit">
+                        <%= analytics.arrivals_unit || 'Metric Tonnes' %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actionable Intelligence Panels: Transport Calculator & Inter-Mandi Comparison -->
+        <div class="row g-4 mb-4">
+            <!-- Selling Location & Transportation Cost Optimizer -->
+            <div class="col-lg-6">
+                <div class="analytics-box h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="fas fa-truck-moving text-success me-2"></i> Transportation & Net Realization
+                        </h5>
+                        <span class="badge bg-light text-muted border">Decision Support</span>
+                    </div>
+                    <p class="small text-muted mb-3">
+                        Account for transit distance and freight expenses to determine which market yields the highest <strong>net in-hand realization</strong>.
+                    </p>
+
+                    <div class="row g-2 mb-3 bg-light p-3 rounded-3 border">
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Transit Distance (km)</label>
+                            <input type="number" class="form-control form-control-sm" id="calcDistanceKm" value="25" min="1" max="500" oninput="recalculateNetRealization()">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label small fw-bold text-dark mb-1">Freight Rate (₹/km/qtl)</label>
+                            <input type="number" class="form-control form-control-sm" id="calcRatePerKm" value="2.5" step="0.1" min="0.5" max="15" oninput="recalculateNetRealization()">
+                        </div>
+                    </div>
+
+                    <div id="transportResultsContainer">
+                        <div class="p-3 bg-success-subtle border border-success-subtle rounded-3 mb-2" id="bestMandiCallout">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-success text-white mb-1">Recommended Best Net Market</span>
+                                    <h6 class="fw-bold mb-0 text-dark" id="bestMandiName">Awaiting selection</h6>
+                                </div>
+                                <div class="text-end">
+                                    <div class="small text-muted">Est. Net Realization</div>
+                                    <span class="fs-5 fw-bold text-success" id="bestNetPrice">₹0 / qtl</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="disclaimer-card mt-3">
+                        <i class="fas fa-circle-exclamation me-1 text-muted"></i>
+                        <strong>Mathematical Insight:</strong> Net realization is an analytical estimate based on farmer inputs (Distance × Rate). Actual mandi settlement fluctuates with buyer negotiations, unloading charges, and mandi levies.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inter-Mandi Price Ranking & Arbitrage -->
+            <div class="col-lg-6">
+                <div class="analytics-box h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="fas fa-chart-column text-primary me-2"></i> Inter-Mandi Price Arbitrage
+                        </h5>
+                        <span class="badge bg-light text-muted border">Market Premium</span>
+                    </div>
+                    <p class="small text-muted mb-3">
+                        Compare reported rates against the national benchmark average to identify high-demand regional buying centers.
+                    </p>
+
+                    <div class="overflow-y-auto" style="max-height: 250px;" id="arbitrageListContainer">
+                        <% if (analytics.market_comparisons && analytics.market_comparisons.length > 0) { %>
+                            <% analytics.market_comparisons.slice(0, 6).forEach(item => { %>
+                                <div class="p-2 mb-2 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <div class="fw-bold text-dark small"><%= item.market %></div>
+                                        <div class="text-muted" style="font-size: 0.72rem;"><%= item.state %> • <%= item.variety %></div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold text-dark">₹<%= Number(item.modal_price).toLocaleString('en-IN') %></div>
+                                        <% if (item.diff_from_avg > 0) { %>
+                                            <span class="text-success fw-bold" style="font-size: 0.72rem;">
+                                                <i class="fas fa-arrow-up"></i> +₹<%= item.diff_from_avg %> (+<%= item.pct_from_avg %>%)
+                                            </span>
+                                        <% } else if (item.diff_from_avg < 0) { %>
+                                            <span class="text-danger fw-bold" style="font-size: 0.72rem;">
+                                                <i class="fas fa-arrow-down"></i> -₹<%= Math.abs(item.diff_from_avg) %> (<%= item.pct_from_avg %>%)
+                                            </span>
+                                        <% } else { %>
+                                            <span class="text-muted fw-bold" style="font-size: 0.72rem;">Average Rate</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        <% } else { %>
+                            <div class="text-center py-4 text-muted small">No comparison data available for current selection.</div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Verified Mandi Price Table -->
+        <div class="mandi-table-card">
+            <div class="p-3 bg-white border-bottom d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="fas fa-list-check text-success me-2"></i> Verified Government Mandi Reports
+                    </h5>
+                    <small class="text-muted" id="tableSubheading">
+                        Showing official records directly verified from Agmarknet 2.0
+                    </small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-light text-dark border px-3 py-2" id="recordCounter">
+                        Total Records: <strong><%= (marketData && marketData.records) ? marketData.records.length : 0 %></strong>
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover table-custom align-middle mb-0" id="mandiTable">
+                    <thead>
+                        <tr>
+                            <th class="ps-3 sortable" onclick="sortTableColumn('market')">
+                                Market Center (Mandi) <i class="fas fa-sort text-muted ms-1" id="sortIcon_market"></i>
+                            </th>
+                            <th class="sortable" onclick="sortTableColumn('state')">
+                                State <i class="fas fa-sort text-muted ms-1" id="sortIcon_state"></i>
+                            </th>
+                            <th>Crop &amp; Variety</th>
+                            <th class="sortable" onclick="sortTableColumn('arrivals')">
+                                Arrivals <i class="fas fa-sort text-muted ms-1" id="sortIcon_arrivals"></i>
+                            </th>
+                            <th class="sortable" onclick="sortTableColumn('min')">
+                                Min (₹/qtl) <i class="fas fa-sort text-muted ms-1" id="sortIcon_min"></i>
+                            </th>
+                            <th class="sortable" onclick="sortTableColumn('max')">
+                                Max (₹/qtl) <i class="fas fa-sort text-muted ms-1" id="sortIcon_max"></i>
+                            </th>
+                            <th class="sortable text-success" onclick="sortTableColumn('price')">
+                                Modal Price (₹/qtl) <i class="fas fa-sort-down text-success ms-1" id="sortIcon_price"></i>
+                            </th>
+                            <th>MSP Status</th>
+                            <th class="pe-3 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mandiTableBody">
+                        <% if (!marketData || !marketData.records || marketData.records.length === 0) { %>
+                            <tr id="emptyTableRow">
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="fas fa-inbox fs-2 mb-2 d-block text-secondary"></i>
+                                    <h6>No government mandi records found for this criteria.</h6>
+                                    <p class="small text-muted mb-0">Try clearing price filters, adjusting the search text, or picking another crop.</p>
+                                </td>
+                            </tr>
+                        <% } else { %>
+                            <% marketData.records.forEach((row, idx) => { %>
+                                <tr data-market="<%= row.market.toLowerCase() %>" 
+                                    data-state="<%= row.state.toLowerCase() %>" 
+                                    data-district="<%= (row.district || '').toLowerCase() %>"
+                                    data-variety="<%= row.variety.toLowerCase() %>"
+                                    data-modal-price="<%= row.modal_price %>"
+                                    data-min-price="<%= row.min_price %>"
+                                    data-max-price="<%= row.max_price %>"
+                                    data-arrivals="<%= row.arrivals %>">
+                                    <td class="ps-3">
+                                        <div class="fw-bold text-dark"><%= row.market %></div>
+                                        <div class="text-muted small" style="font-size: 0.75rem;"><%= row.district || row.state %></div>
+                                    </td>
+                                    <td><span class="text-secondary small fw-semibold"><%= row.state %></span></td>
+                                    <td>
+                                        <div class="fw-semibold text-dark"><%= row.commodity %></div>
+                                        <div class="badge bg-light text-secondary border fw-normal" style="font-size: 0.72rem;"><%= row.variety %></div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark"><%= Number(row.arrivals).toLocaleString('en-IN') %></span>
+                                        <span class="text-muted small" style="font-size: 0.72rem;"><%= row.arrivals_unit %></span>
+                                    </td>
+                                    <td class="text-muted fw-semibold">₹<%= Number(row.min_price).toLocaleString('en-IN') %></td>
+                                    <td class="text-muted fw-semibold">₹<%= Number(row.max_price).toLocaleString('en-IN') %></td>
+                                    <td>
+                                        <span class="price-badge">₹<%= Number(row.modal_price).toLocaleString('en-IN') %></span>
+                                    </td>
+                                    <td>
+                                        <% if (row.below_msp) { %>
+                                            <span class="msp-badge-below"><i class="fas fa-triangle-exclamation me-1"></i> Below MSP</span>
+                                        <% } else { %>
+                                            <span class="msp-badge-above"><i class="fas fa-circle-check me-1"></i> Above / Fair</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="pe-3 text-end">
+                                        <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold"
+                                                onclick="showHistoricalPriceTrend('<%= row.commodity %>', '<%= row.market %>')">
+                                            <i class="fas fa-chart-line me-1"></i> Trend
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Compliance & Regulatory Footer Notice -->
+        <div class="disclaimer-card mb-5">
+            <div class="d-flex align-items-start">
+                <i class="fas fa-shield-alt text-success fs-5 me-3 mt-1"></i>
+                <div>
+                    <h6 class="fw-bold mb-1 text-dark">Official Data Verification &amp; Fair Practice Declaration</h6>
+                    <p class="mb-0">
+                        Agro-Haat integrates strictly with the Government of India's authorized Agmarknet 2.0 system and Open Government Data (data.gov.in) platforms. All market centers, arrival figures, minimum prices, maximum prices, and modal prices displayed herein reflect direct state APMC submissions. Agro-Haat does not simulate, fabricate, or hardcode market prices. Historical rates are presented purely for reference and trend evaluation; they do not guarantee future settlement values.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Historical Price Trend Modal -->
+    <div class="modal fade" id="trendModal" tabindex="-1" aria-labelledby="trendModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header bg-success text-white py-3">
+                    <h5 class="modal-title fw-bold" id="trendModalLabel">
+                        <i class="fas fa-chart-line me-2"></i> Historical Mandi Price Trend
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0 text-dark" id="modalCropMarketTitle">Crop Name @ Mandi</h5>
+                            <small class="text-muted" id="modalSourceBadge">Official Agmarknet 2.0 Government Data</small>
+                        </div>
+                        <span class="badge bg-light text-secondary border px-3 py-2 rounded-pill" id="modalTrendBadge">
+                            Calculating trend...
+                        </span>
+                    </div>
+
+                    <!-- Chart Container -->
+                    <div class="p-3 bg-light rounded-3 border mb-4" style="height: 280px; position: relative;">
+                        <canvas id="historicalChartCanvas"></canvas>
+                        <div id="chartLoadingOverlay" class="position-absolute top-50 start-50 translate-middle text-center d-none">
+                            <div class="spinner-border text-success mb-2"></div>
+                            <div class="small text-muted">Retrieving verified government daily records...</div>
+                        </div>
+                    </div>
+
+                    <!-- History Table -->
+                    <h6 class="fw-bold text-dark mb-2">Daily Reporting Summary</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Market Center</th>
+                                    <th>Modal Rate</th>
+                                    <th>Min - Max</th>
+                                    <th>Daily Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modalHistoryTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light py-2">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Client-Side Real-Time Market Intelligence Script -->
+    <script>
+        let currentRawRecords = <%- JSON.stringify((marketData && marketData.records) ? marketData.records : []) %>;
+        let chartInstance = null;
+        let currentSortColumn = 'price';
+        let currentSortDirection = 'desc';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            recalculateNetRealization();
+        });
+
+        // Quick chip selection for top commodities
+        function selectCommodityChip(cropName) {
+            document.querySelectorAll('.crop-chip').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const select = document.getElementById('commoditySelect');
+            select.value = cropName;
+            applyFilters();
+        }
+
+        // Quick price presets handler
+        function setPricePreset(min, max, chipElement) {
+            document.querySelectorAll('.price-preset-chip').forEach(c => c.classList.remove('active'));
+            if (chipElement) chipElement.classList.add('active');
+
+            document.getElementById('minPriceInput').value = min !== null ? min : '';
+            document.getElementById('maxPriceInput').value = max !== null ? max : '';
+
+            // Apply filter immediately
+            filterTableLocally();
+        }
+
+        // Clear search input
+        function clearSearchInput() {
+            document.getElementById('searchInput').value = '';
+            filterTableLocally();
+        }
+
+        // Cascading State Change -> Fetch Districts
+        async function onStateChange() {
+            const stateId = document.getElementById('stateSelect').value;
+            const districtSelect = document.getElementById('districtSelect');
+            const marketSelect = document.getElementById('marketSelect');
+
+            districtSelect.innerHTML = '<option value="">All Districts</option>';
+            marketSelect.innerHTML = '<option value="">All Mandis</option>';
+
+            if (!stateId) {
+                districtSelect.disabled = true;
+                marketSelect.disabled = true;
+                applyFilters();
+                return;
+            }
+
+            districtSelect.disabled = false;
+            try {
+                const res = await fetch(`/api/market/locations?state_id=${stateId}`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    data.data.forEach(d => {
+                        const opt = document.createElement('option');
+                        opt.value = d.id;
+                        opt.textContent = d.name;
+                        districtSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load districts:', err);
+            }
+
+            applyFilters();
+        }
+
+        // Cascading District Change -> Fetch Mandis
+        async function onDistrictChange() {
+            const stateId = document.getElementById('stateSelect').value;
+            const districtId = document.getElementById('districtSelect').value;
+            const marketSelect = document.getElementById('marketSelect');
+
+            marketSelect.innerHTML = '<option value="">All Mandis</option>';
+
+            if (!districtId) {
+                marketSelect.disabled = true;
+                applyFilters();
+                return;
+            }
+
+            marketSelect.disabled = false;
+            try {
+                const res = await fetch(`/api/market/locations?state_id=${stateId}&district_id=${districtId}`);
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    data.data.forEach(m => {
+                        const opt = document.createElement('option');
+                        opt.value = m.id;
+                        opt.textContent = m.name;
+                        marketSelect.appendChild(opt);
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load markets:', err);
+            }
+
+            applyFilters();
+        }
+
+        // Apply filters via AJAX and update UI seamlessly
+        async function applyFilters() {
+            const commodity = document.getElementById('commoditySelect').value;
+            const state = document.getElementById('stateSelect').value;
+            const district = document.getElementById('districtSelect').value;
+            const market = document.getElementById('marketSelect').value;
+            const date = document.getElementById('dateInput').value;
+            const minPrice = document.getElementById('minPriceInput').value;
+            const maxPrice = document.getElementById('maxPriceInput').value;
+            const sortBy = document.getElementById('sortBySelect').value;
+            const search = document.getElementById('searchInput').value.trim();
+
+            // Show table loading state
+            const tbody = document.getElementById('mandiTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="9" class="text-center py-5">
+                        <div class="spinner-border text-success mb-2"></div>
+                        <div class="text-muted small">Fetching verified Agmarknet 2.0 records...</div>
+                    </td>
+                </tr>
+            `;
+
+            try {
+                const params = new URLSearchParams({ commodity });
+                if (state) params.append('state', state);
+                if (district) params.append('district', district);
+                if (market) params.append('market', market);
+                if (date) params.append('date', date);
+                if (minPrice) params.append('min_price', minPrice);
+                if (maxPrice) params.append('max_price', maxPrice);
+                if (sortBy) params.append('sort_by', sortBy);
+                if (search) params.append('search', search);
+
+                const res = await fetch(`/api/market/prices?${params.toString()}`);
+                const data = await res.json();
+
+                if (data.success) {
+                    currentRawRecords = data.records;
+                    updateUIWithData(data);
+                } else {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-danger">
+                                <i class="fas fa-triangle-exclamation fs-3 mb-2 d-block"></i>
+                                <h6>${data.message || 'Error retrieving records'}</h6>
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (err) {
+                console.error('Filter request failed:', err);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-danger">
+                            <i class="fas fa-circle-exclamation fs-3 mb-2 d-block"></i>
+                            <h6>Failed to connect to the market service.</h6>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Real-Time Local Filter & Search Engine (Supports Price Ranges, Operators, Substrings, and Text)
+        function filterTableLocally() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const minPriceVal = document.getElementById('minPriceInput').value ? Number(document.getElementById('minPriceInput').value) : null;
+            const maxPriceVal = document.getElementById('maxPriceInput').value ? Number(document.getElementById('maxPriceInput').value) : null;
+
+            // Parse price operators from query if present
+            let queryMin = null;
+            let queryMax = null;
+            let queryExactNum = null;
+
+            // Check range in query: e.g. "2500-3000" or "2500 to 3000" or "2500..3000"
+            const rangeMatch = query.match(/^(\d+)\s*(?:-|to|\.\.)\s*(\d+)$/);
+            if (rangeMatch) {
+                queryMin = Number(rangeMatch[1]);
+                queryMax = Number(rangeMatch[2]);
+            } else {
+                // Greater than: "> 2500", ">= 2500", "above 2500"
+                const gtMatch = query.match(/^(?:>=?|>|above|over)\s*(\d+)$/);
+                if (gtMatch) {
+                    queryMin = Number(gtMatch[1]);
+                } else {
+                    // Less than: "< 3000", "<= 3000", "below 3000"
+                    const ltMatch = query.match(/^(?:<=?|<|below|under)\s*(\d+)$/);
+                    if (ltMatch) {
+                        queryMax = Number(ltMatch[1]);
+                    } else if (query && !isNaN(query)) {
+                        queryExactNum = query;
+                    }
+                }
+            }
+
+            const rows = document.querySelectorAll('#mandiTableBody tr:not(#emptyTableRow)');
+            let visibleCount = 0;
+            const visibleRecords = [];
+
+            rows.forEach(r => {
+                const market = r.getAttribute('data-market') || '';
+                const state = r.getAttribute('data-state') || '';
+                const district = r.getAttribute('data-district') || '';
+                const variety = r.getAttribute('data-variety') || '';
+                const modalPrice = Number(r.getAttribute('data-modal-price')) || 0;
+                const minPrice = Number(r.getAttribute('data-min-price')) || 0;
+                const maxPrice = Number(r.getAttribute('data-max-price')) || 0;
+                const arrivals = Number(r.getAttribute('data-arrivals')) || 0;
+
+                let matches = true;
+
+                // 1. Min Price check (from dedicated input or query)
+                const effectiveMin = minPriceVal !== null ? minPriceVal : queryMin;
+                if (effectiveMin !== null && modalPrice < effectiveMin) {
+                    matches = false;
+                }
+
+                // 2. Max Price check (from dedicated input or query)
+                const effectiveMax = maxPriceVal !== null ? maxPriceVal : queryMax;
+                if (effectiveMax !== null && modalPrice > effectiveMax) {
+                    matches = false;
+                }
+
+                // 3. Exact Price or Text Search check
+                if (matches && query) {
+                    if (queryMin !== null || queryMax !== null) {
+                        // Handled by range/gt/lt above
+                    } else if (queryExactNum !== null) {
+                        // Query is a number like 2700: check if modal_price, min_price, or max_price matches or contains it
+                        const numStr = queryExactNum;
+                        const priceMatches = modalPrice.toString().includes(numStr) || 
+                                             minPrice.toString().includes(numStr) || 
+                                             maxPrice.toString().includes(numStr);
+                        if (!priceMatches) {
+                            matches = false;
+                        }
+                    } else {
+                        // Text match across market, state, district, variety, and price string
+                        const textMatches = market.includes(query) || 
+                                            state.includes(query) || 
+                                            district.includes(query) || 
+                                            variety.includes(query) ||
+                                            modalPrice.toString().includes(query);
+                        if (!textMatches) {
+                            matches = false;
+                        }
+                    }
+                }
+
+                if (matches) {
+                    r.style.display = '';
+                    visibleCount++;
+                    visibleRecords.push({
+                        market: r.querySelector('.fw-bold.text-dark')?.innerText || market,
+                        state: r.children[1]?.innerText || state,
+                        variety: r.querySelector('.badge.bg-light')?.innerText || variety,
+                        modal_price: modalPrice,
+                        min_price: minPrice,
+                        max_price: maxPrice,
+                        arrivals: arrivals
+                    });
+                } else {
+                    r.style.display = 'none';
+                }
+            });
+
+            // Handle empty state message
+            let emptyRow = document.getElementById('emptyTableRow');
+            if (visibleCount === 0) {
+                if (!emptyRow) {
+                    emptyRow = document.createElement('tr');
+                    emptyRow.id = 'emptyTableRow';
+                    emptyRow.innerHTML = `
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fas fa-search-dollar fs-2 mb-2 d-block text-secondary"></i>
+                            <h6>No mandis found matching the specified price or search criteria.</h6>
+                            <p class="small text-muted mb-2">Try clearing your price bounds or searching for a wider range.</p>
+                            <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" onclick="resetFilters()">
+                                <i class="fas fa-rotate-left me-1"></i> Clear Filters
+                            </button>
+                        </td>
+                    `;
+                    document.getElementById('mandiTableBody').appendChild(emptyRow);
+                } else {
+                    emptyRow.style.display = '';
+                }
+            } else if (emptyRow) {
+                emptyRow.style.display = 'none';
+            }
+
+            // Update Counter
+            document.getElementById('recordCounter').innerHTML = `Showing <strong>${visibleCount}</strong> of ${rows.length} Mandis`;
+
+            // Dynamically Recalculate and Update 5 KPI Cards for the filtered subset
+            recalculateKPIsFromRecords(visibleRecords);
+            recalculateNetRealization();
+        }
+
+        // Dynamically recalculate 5 KPI summary cards based on currently filtered records
+        function recalculateKPIsFromRecords(records) {
+            if (!records || records.length === 0) {
+                document.getElementById('kpiHighestPrice').innerText = '—';
+                document.getElementById('kpiHighestMandi').innerText = 'No matching mandis';
+                document.getElementById('kpiLowestPrice').innerText = '—';
+                document.getElementById('kpiLowestMandi').innerText = 'No matching mandis';
+                document.getElementById('kpiPriceSpread').innerText = '—';
+                document.getElementById('kpiSpreadPct').innerText = '0% spread';
+                document.getElementById('kpiAvgPrice').innerText = '—';
+                document.getElementById('kpiReportingCount').innerText = '0 Mandis Matching';
+                document.getElementById('kpiTotalArrivals').innerText = '0';
+                return;
+            }
+
+            let maxRec = records[0];
+            let minRec = records[0];
+            let sumModal = 0;
+            let sumArrivals = 0;
+
+            records.forEach(r => {
+                sumModal += r.modal_price;
+                sumArrivals += r.arrivals;
+                if (r.modal_price > maxRec.modal_price) maxRec = r;
+                if (r.modal_price < minRec.modal_price && r.modal_price > 0) minRec = r;
+            });
+
+            const avgModal = Math.round(sumModal / records.length);
+            const spread = maxRec.modal_price - minRec.modal_price;
+            const spreadPct = minRec.modal_price > 0 ? ((spread / minRec.modal_price) * 100).toFixed(1) : 0;
+
+            document.getElementById('kpiHighestPrice').innerText = `₹${Number(maxRec.modal_price).toLocaleString('en-IN')}`;
+            document.getElementById('kpiHighestMandi').innerText = `${maxRec.market} (${maxRec.state})`;
+
+            document.getElementById('kpiLowestPrice').innerText = `₹${Number(minRec.modal_price).toLocaleString('en-IN')}`;
+            document.getElementById('kpiLowestMandi').innerText = `${minRec.market} (${minRec.state})`;
+
+            document.getElementById('kpiPriceSpread').innerText = `₹${Number(spread).toLocaleString('en-IN')}`;
+            document.getElementById('kpiSpreadPct').innerText = `Gap: ${spreadPct}%`;
+
+            document.getElementById('kpiAvgPrice').innerText = `₹${Number(avgModal).toLocaleString('en-IN')}`;
+            document.getElementById('kpiReportingCount').innerText = `${records.length} Mandis Matching`;
+
+            document.getElementById('kpiTotalArrivals').innerText = Number(sumArrivals.toFixed(2)).toLocaleString('en-IN');
+        }
+
+        // Sort table column on header click
+        function sortTableColumn(column) {
+            if (currentSortColumn === column) {
+                currentSortDirection = currentSortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSortColumn = column;
+                currentSortDirection = 'desc';
+            }
+
+            // Update header icons
+            ['market', 'state', 'arrivals', 'min', 'max', 'price'].forEach(col => {
+                const icon = document.getElementById(`sortIcon_${col}`);
+                if (icon) {
+                    if (col === currentSortColumn) {
+                        icon.className = `fas fa-sort-${currentSortDirection === 'asc' ? 'up text-success' : 'down text-success'} ms-1`;
+                    } else {
+                        icon.className = 'fas fa-sort text-muted ms-1';
+                    }
+                }
+            });
+
+            // Map to sort select value
+            const sortSelect = document.getElementById('sortBySelect');
+            if (column === 'price') sortSelect.value = currentSortDirection === 'asc' ? 'price_asc' : 'price_desc';
+            else if (column === 'arrivals') sortSelect.value = currentSortDirection === 'asc' ? 'arrivals_asc' : 'arrivals_desc';
+            else if (column === 'market') sortSelect.value = 'market_asc';
+
+            sortAndRenderTable();
+        }
+
+        // Sort and re-render table based on selection
+        function sortAndRenderTable() {
+            const sortBy = document.getElementById('sortBySelect').value;
+            const tbody = document.getElementById('mandiTableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr:not(#emptyTableRow)'));
+
+            rows.sort((a, b) => {
+                const aPrice = Number(a.getAttribute('data-modal-price')) || 0;
+                const bPrice = Number(b.getAttribute('data-modal-price')) || 0;
+                const aArr = Number(a.getAttribute('data-arrivals')) || 0;
+                const bArr = Number(b.getAttribute('data-arrivals')) || 0;
+                const aMkt = a.getAttribute('data-market') || '';
+                const bMkt = b.getAttribute('data-market') || '';
+
+                switch (sortBy) {
+                    case 'price_desc': return bPrice - aPrice;
+                    case 'price_asc': return aPrice - bPrice;
+                    case 'arrivals_desc': return bArr - aArr;
+                    case 'arrivals_asc': return aArr - bArr;
+                    case 'market_asc': return aMkt.localeCompare(bMkt);
+                    case 'spread_desc': {
+                        const aSpread = (Number(a.getAttribute('data-max-price')) || 0) - (Number(a.getAttribute('data-min-price')) || 0);
+                        const bSpread = (Number(b.getAttribute('data-max-price')) || 0) - (Number(b.getAttribute('data-min-price')) || 0);
+                        return bSpread - aSpread;
+                    }
+                    default: return bPrice - aPrice;
+                }
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+            filterTableLocally();
+        }
+
+        // Update all UI cards, charts, and tables from returned payload
+        function updateUIWithData(data) {
+            const { analytics, records, reporting_date, fetched_at, from_cache } = data;
+
+            // Update status bar
+            document.getElementById('displayReportDate').innerText = reporting_date || 'Latest Available';
+            document.getElementById('displayFetchedAt').innerText = fetched_at ? new Date(fetched_at).toLocaleTimeString('en-IN') : 'Just now';
+            
+            const dot = document.getElementById('statusDot');
+            dot.className = `status-dot ${from_cache ? 'cached' : 'live'}`;
+
+            const cacheContainer = document.getElementById('cacheBadgeContainer');
+            if (from_cache) {
+                cacheContainer.innerHTML = `<span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle"><i class="fas fa-bolt me-1"></i> Cached (TTL: 15m)</span>`;
+            } else {
+                cacheContainer.innerHTML = `<span class="badge bg-success-subtle text-success border border-success-subtle"><i class="fas fa-circle-check me-1"></i> Verified Live Feed</span>`;
+            }
+
+            // Update Table records counter
+            document.getElementById('recordCounter').innerHTML = `Total Records: <strong>${records.length}</strong>`;
+
+            // Update Table rows
+            const tbody = document.getElementById('mandiTableBody');
+            if (!records || records.length === 0) {
+                tbody.innerHTML = `
+                    <tr id="emptyTableRow">
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fas fa-inbox fs-2 mb-2 d-block text-secondary"></i>
+                            <h6>No government mandi records found for this criteria.</h6>
+                            <p class="small text-muted mb-0">Try clearing price filters or selecting yesterday's date.</p>
+                        </td>
+                    </tr>
+                `;
+            } else {
+                let html = '';
+                records.forEach(row => {
+                    const mspBadge = row.below_msp
+                        ? `<span class="msp-badge-below"><i class="fas fa-triangle-exclamation me-1"></i> Below MSP</span>`
+                        : `<span class="msp-badge-above"><i class="fas fa-circle-check me-1"></i> Above / Fair</span>`;
+
+                    html += `
+                        <tr data-market="${row.market.toLowerCase()}" 
+                            data-state="${row.state.toLowerCase()}" 
+                            data-district="${(row.district || '').toLowerCase()}"
+                            data-variety="${row.variety.toLowerCase()}"
+                            data-modal-price="${row.modal_price}"
+                            data-min-price="${row.min_price}"
+                            data-max-price="${row.max_price}"
+                            data-arrivals="${row.arrivals}">
+                            <td class="ps-3">
+                                <div class="fw-bold text-dark">${row.market}</div>
+                                <div class="text-muted small" style="font-size: 0.75rem;">${row.district || row.state}</div>
+                            </td>
+                            <td><span class="text-secondary small fw-semibold">${row.state}</span></td>
+                            <td>
+                                <div class="fw-semibold text-dark">${row.commodity}</div>
+                                <div class="badge bg-light text-secondary border fw-normal" style="font-size: 0.72rem;">${row.variety}</div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-dark">${Number(row.arrivals).toLocaleString('en-IN')}</span>
+                                <span class="text-muted small" style="font-size: 0.72rem;">${row.arrivals_unit}</span>
+                            </td>
+                            <td class="text-muted fw-semibold">₹${Number(row.min_price).toLocaleString('en-IN')}</td>
+                            <td class="text-muted fw-semibold">₹${Number(row.max_price).toLocaleString('en-IN')}</td>
+                            <td>
+                                <span class="price-badge">₹${Number(row.modal_price).toLocaleString('en-IN')}</span>
+                            </td>
+                            <td>${mspBadge}</td>
+                            <td class="pe-3 text-end">
+                                <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-bold"
+                                        onclick="showHistoricalPriceTrend('${row.commodity}', '${row.market}')">
+                                    <i class="fas fa-chart-line me-1"></i> Trend
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            }
+
+            // Update Arbitrage list
+            const arbContainer = document.getElementById('arbitrageListContainer');
+            if (analytics.market_comparisons && analytics.market_comparisons.length > 0) {
+                let arbHtml = '';
+                analytics.market_comparisons.slice(0, 6).forEach(item => {
+                    let diffHtml = '';
+                    if (item.diff_from_avg > 0) {
+                        diffHtml = `<span class="text-success fw-bold" style="font-size: 0.72rem;"><i class="fas fa-arrow-up"></i> +₹${item.diff_from_avg} (+${item.pct_from_avg}%)</span>`;
+                    } else if (item.diff_from_avg < 0) {
+                        diffHtml = `<span class="text-danger fw-bold" style="font-size: 0.72rem;"><i class="fas fa-arrow-down"></i> -₹${Math.abs(item.diff_from_avg)} (${item.pct_from_avg}%)</span>`;
+                    } else {
+                        diffHtml = `<span class="text-muted fw-bold" style="font-size: 0.72rem;">Average Rate</span>`;
+                    }
+
+                    arbHtml += `
+                        <div class="p-2 mb-2 bg-light rounded-3 border d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-bold text-dark small">${item.market}</div>
+                                <div class="text-muted" style="font-size: 0.72rem;">${item.state} • ${item.variety}</div>
+                            </div>
+                            <div class="text-end">
+                                <div class="fw-bold text-dark">₹${Number(item.modal_price).toLocaleString('en-IN')}</div>
+                                ${diffHtml}
+                            </div>
+                        </div>
+                    `;
+                });
+                arbContainer.innerHTML = arbHtml;
+            } else {
+                arbContainer.innerHTML = '<div class="text-center py-4 text-muted small">No comparison data available.</div>';
+            }
+
+            filterTableLocally();
+        }
+
+        // Reset all filters to default
+        function resetFilters() {
+            document.getElementById('commoditySelect').value = 'Wheat';
+            document.getElementById('stateSelect').value = '';
+            document.getElementById('districtSelect').value = '';
+            document.getElementById('districtSelect').disabled = true;
+            document.getElementById('marketSelect').value = '';
+            document.getElementById('marketSelect').disabled = true;
+            document.getElementById('dateInput').value = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('minPriceInput').value = '';
+            document.getElementById('maxPriceInput').value = '';
+            document.getElementById('sortBySelect').value = 'price_desc';
+
+            document.querySelectorAll('.crop-chip').forEach(btn => {
+                if (btn.innerText.trim().toLowerCase() === 'wheat') {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('.price-preset-chip').forEach((btn, idx) => {
+                if (idx === 0) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            applyFilters();
+        }
+
+        // Manual refresh button triggers fresh fetch bypass
+        async function triggerManualRefresh() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('fa-spin');
+            await applyFilters();
+            setTimeout(() => icon.classList.remove('fa-spin'), 600);
+        }
+
+        // Calculate Net Selling Realization
+        function recalculateNetRealization() {
+            if (!currentRawRecords || currentRawRecords.length === 0) return;
+
+            const distanceKm = Number(document.getElementById('calcDistanceKm').value) || 25;
+            const ratePerKm = Number(document.getElementById('calcRatePerKm').value) || 2.5;
+
+            // Compute net realization for visible/current records
+            const scored = currentRawRecords.map(r => {
+                const freightCost = Math.round(distanceKm * ratePerKm);
+                const netRealization = r.modal_price - freightCost;
+                return { ...r, freightCost, netRealization };
+            }).sort((a, b) => b.netRealization - a.netRealization);
+
+            if (scored.length > 0) {
+                const best = scored[0];
+                document.getElementById('bestMandiName').innerText = `${best.market} (${best.state})`;
+                document.getElementById('bestNetPrice').innerText = `₹${Number(best.netRealization).toLocaleString('en-IN')} / qtl`;
+            }
+        }
+
+        // Show Historical Price Trend Modal
+        async function showHistoricalPriceTrend(crop, market) {
+            const modalTitle = document.getElementById('modalCropMarketTitle');
+            const historyTbody = document.getElementById('modalHistoryTableBody');
+            const trendBadge = document.getElementById('modalTrendBadge');
+            const loadingOverlay = document.getElementById('chartLoadingOverlay');
+
+            modalTitle.innerText = `${crop} — ${market}`;
+            historyTbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Fetching verified records...</td></tr>';
+            loadingOverlay.classList.remove('d-none');
+
+            const modal = new bootstrap.Modal(document.getElementById('trendModal'));
+            modal.show();
+
+            try {
+                const res = await fetch(`/api/market/history?crop=${encodeURIComponent(crop)}&market=${encodeURIComponent(market)}&days=5`);
+                const data = await res.json();
+                loadingOverlay.classList.add('d-none');
+
+                if (data.success && data.history && data.history.length > 0) {
+                    let tableHtml = '';
+                    const labels = [];
+                    const modalPrices = [];
+                    const minPrices = [];
+                    const maxPrices = [];
+
+                    data.history.forEach(row => {
+                        const trendIcon = row.trend === 'up'
+                            ? `<span class="text-success fw-bold"><i class="fas fa-arrow-trend-up"></i> +₹${row.change} (${row.change_pct}%)</span>`
+                            : (row.trend === 'down'
+                                ? `<span class="text-danger fw-bold"><i class="fas fa-arrow-trend-down"></i> -₹${Math.abs(row.change)} (${row.change_pct}%)</span>`
+                                : `<span class="text-muted fw-bold"><i class="fas fa-minus"></i> Stable</span>`);
+
+                        tableHtml += `
+                            <tr>
+                                <td class="fw-bold">${row.display_date || row.date}</td>
+                                <td class="text-muted small">${row.market}</td>
+                                <td class="fw-bold text-success">₹${Number(row.price).toLocaleString('en-IN')}</td>
+                                <td class="text-muted small">₹${Number(row.min).toLocaleString('en-IN')} - ₹${Number(row.max).toLocaleString('en-IN')}</td>
+                                <td>${trendIcon}</td>
+                            </tr>
+                        `;
+                    });
+                    historyTbody.innerHTML = tableHtml;
+
+                    // Compute overall trend badge
+                    const latest = data.history[0];
+                    const oldest = data.history[data.history.length - 1];
+                    const totalChange = latest.price - oldest.price;
+                    const totalPct = oldest.price > 0 ? ((totalChange / oldest.price) * 100).toFixed(1) : 0;
+
+                    if (totalChange > 0) {
+                        trendBadge.className = 'badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill';
+                        trendBadge.innerHTML = `<i class="fas fa-arrow-trend-up me-1"></i> Rising Trend (+${totalPct}%)`;
+                    } else if (totalChange < 0) {
+                        trendBadge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill';
+                        trendBadge.innerHTML = `<i class="fas fa-arrow-trend-down me-1"></i> Falling Trend (${totalPct}%)`;
+                    } else {
+                        trendBadge.className = 'badge bg-secondary-subtle text-secondary border px-3 py-2 rounded-pill';
+                        trendBadge.innerHTML = `<i class="fas fa-minus me-1"></i> Stable Trend (0%)`;
+                    }
+
+                    // Render Chart.js
+                    const chartData = [...data.history].reverse();
+                    chartData.forEach(h => {
+                        labels.push(h.display_date || h.date);
+                        modalPrices.push(h.price);
+                        minPrices.push(h.min);
+                        maxPrices.push(h.max);
+                    });
+
+                    renderTrendChart(labels, modalPrices, minPrices, maxPrices);
+                } else {
+                    historyTbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">No historical data available for this market center.</td></tr>';
+                }
+            } catch (err) {
+                console.error('History fetch error:', err);
+                loadingOverlay.classList.add('d-none');
+                historyTbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-danger">Failed to load historical rates.</td></tr>';
+            }
+        }
+
+        // Render Chart.js instance
+        function renderTrendChart(labels, modalPrices, minPrices, maxPrices) {
+            const ctx = document.getElementById('historicalChartCanvas').getContext('2d');
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Modal Price (₹/qtl)',
+                            data: modalPrices,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 3,
+                            pointRadius: 5,
+                            pointBackgroundColor: '#10b981'
+                        },
+                        {
+                            label: 'Max Price (₹/qtl)',
+                            data: maxPrices,
+                            borderColor: '#3b82f6',
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            borderWidth: 1.5,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Min Price (₹/qtl)',
+                            data: minPrices,
+                            borderColor: '#f59e0b',
+                            borderDash: [5, 5],
+                            tension: 0.3,
+                            borderWidth: 1.5,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: 'Plus Jakarta Sans', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ₹${context.parsed.y.toLocaleString('en-IN')}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: function(value) { return '₹' + value; },
+                                font: { family: 'Plus Jakarta Sans', size: 11 }
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { font: { family: 'Plus Jakarta Sans', size: 11 } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

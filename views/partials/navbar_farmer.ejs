@@ -1,0 +1,80 @@
+<div class="navbar-farmer-wrapper">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-farmer-glass">
+        <div class="container-fluid">
+            <!-- Brand Logo with Leaf Badge -->
+            <a class="navbar-brand" href="/farmer/dashboard">
+                <span class="brand-leaf-badge"><i class="fas fa-leaf"></i></span>
+                <span>AGRO<strong style="color: #4ade80;">HAAT</strong></span>
+            </a>
+
+            <!-- Mobile Toggle -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#farmerNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Nav Links & Profile Dropdown -->
+            <div class="collapse navbar-collapse justify-content-end" id="farmerNavbar">
+                <ul class="navbar-nav align-items-center gap-2">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/farmer/dashboard">
+                            <i class="fas fa-grid-horizontal me-1"></i> <span data-i18n="nav_dashboard">Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/view_orders">
+                            <i class="fas fa-receipt me-1"></i> <span data-i18n="nav_orders">Orders</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/manage_products">
+                            <i class="fas fa-boxes-stacked me-1"></i> <span data-i18n="nav_inventory">Inventory</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-warning fw-bold" href="/farmer/judge_test" title="Hackathon Judge Test Console">
+                            <i class="fas fa-balance-scale me-1"></i> <span>Judge Test</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/farmer/model_evaluation" title="Model Metrics & Unseen Test Evaluation">
+                            <i class="fas fa-chart-line me-1"></i> <span>Metrics</span>
+                        </a>
+                    </li>
+
+                    <!-- Language Switcher Pill -->
+                    <li class="nav-item ms-lg-2">
+                        <button class="btn-lang-pill" id="langSwitchBtn" onclick="toggleLanguage()" title="भाषा बदलें / Change Language" type="button">
+                            <span id="langToggleFlag">🇮🇳</span> <span id="langToggleText">हिन्दी</span>
+                        </button>
+                    </li>
+
+                    <!-- User Profile Dropdown -->
+                    <li class="nav-item dropdown ms-lg-2">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="farmerProfileDrop" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="/public/uploads/profile_pictures/<%= (user && user.image) ? user.image : 'default.jpg' %>" alt="Profile" class="rounded-circle border border-2 border-success" style="width: 36px; height: 36px; object-fit: cover;">
+                            <span class="fw-bold"><%= (user && user.fullname) ? user.fullname : 'Farmer' %></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="farmerProfileDrop">
+                            <li>
+                                <a class="dropdown-item" href="/profile">
+                                    <i class="fas fa-user-circle me-2 text-success"></i> <span data-i18n="profile_my">My Profile</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/change_password">
+                                    <i class="fas fa-key me-2 text-warning"></i> <span data-i18n="profile_password">Change Password</span>
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider border-secondary opacity-25"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="/actions/logout_action.php">
+                                    <i class="fas fa-sign-out-alt me-2"></i> <span data-i18n="profile_logout">Logout</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</div>

@@ -1,0 +1,1632 @@
+<%- include('../partials/header', { page_title: 'Soil Health Analysis & Intelligence' }) %>
+<%- include('../partials/navbar_farmer') %>
+
+<div class="container-fluid px-lg-5 mt-4 mb-5">
+    <!-- Top Header Banner -->
+    <div class="glass-card p-4 mb-4 border-start border-4 border-success animate-fade-in-up">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center mb-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill me-2">
+                        <i class="fas fa-microscope me-1"></i> ICAR & GoI SHC Standards v1.35
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">
+                        <i class="fas fa-language me-1"></i> Bilingual (English & हिंदी)
+                    </span>
+                </div>
+                <h2 class="fw-bold text-dark mb-1">
+                    Smart Soil Health Intelligence & Advisory 🧪🌾
+                </h2>
+                <p class="text-muted mb-0 small">
+                    Location-aware, scientifically-calibrated soil assessment based on ICAR fertility ratings, SAU General Fertilizer Recommendations (GFR), and official GoI Soil Health Card protocols.
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                <button class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#shcApiModal">
+                    <i class="fas fa-link me-1"></i> GoI SHC API Status
+                </button>
+                <button class="btn btn-success btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addPlotModal">
+                    <i class="fas fa-plus-circle me-1"></i> Add / Save Plot
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Location Disclaimer Alert -->
+    <div class="alert alert-info border-0 shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center">
+        <i class="fas fa-info-circle fa-2x text-primary me-3"></i>
+        <div class="small">
+            <strong>Scientific Advisory:</strong> Farm location GPS is used strictly to identify your administrative agro-climatic region, soil texture zone, and regional GFR guidance. 
+            <span class="text-danger fw-semibold">Soil nutrient values are never inferred from GPS alone</span>; they must be provided from certified laboratory tests, Soil Health Cards, or field test kits.
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- LEFT COLUMN: Workflow Input Forms -->
+        <div class="col-xl-5 col-lg-6">
+            <div class="glass-card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fas fa-map-marked-alt text-success me-2"></i>Step 1: Farm Location & Plot Profile
+                </h5>
+
+                <!-- Saved Plot Selector -->
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">Select Saved Plot (खेत चुनें)</label>
+                    <div class="input-group">
+                        <select id="savedPlotSelect" class="form-select rounded-start-pill">
+                            <option value="">-- Choose from saved farm plots (or enter below) --</option>
+                            <% if (typeof savedPlots !== 'undefined' && savedPlots.length > 0) { %>
+                                <% savedPlots.forEach(plot => { %>
+                                    <option value="<%= plot.id %>" 
+                                            data-name="<%= plot.plot_name %>"
+                                            data-area="<%= plot.area_acres %>"
+                                            data-state="<%= plot.state %>"
+                                            data-district="<%= plot.district %>"
+                                            data-block="<%= plot.block_tehsil %>"
+                                            data-village="<%= plot.village %>"
+                                            data-lat="<%= plot.latitude %>"
+                                            data-lon="<%= plot.longitude %>"
+                                            data-soil="<%= plot.soil_type %>"
+                                            data-survey="<%= plot.survey_number %>">
+                                        <%= plot.plot_name %> (<%= plot.district %>, <%= plot.state %> - <%= plot.area_acres %> Acres)
+                                    </option>
+                                <% }); %>
+                            <% } %>
+                        </select>
+                        <button type="button" class="btn btn-outline-secondary rounded-end-pill px-3" id="clearPlotBtn" title="Clear / New Plot">
+                            <i class="fas fa-redo-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- GPS Auto Detection Box -->
+                <div class="p-3 bg-light rounded-4 mb-3 border">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="small fw-bold text-dark"><i class="fas fa-satellite text-primary me-1"></i> Automatic GPS Detection</span>
+                        <span id="gpsStatusBadge" class="badge bg-secondary-subtle text-secondary rounded-pill px-2">Ready</span>
+                    </div>
+                    <p class="text-muted small mb-2" style="font-size: 0.8rem;">
+                        Click below to detect your field coordinates via browser geolocation with reverse geocoding.
+                    </p>
+                    <div class="d-flex gap-2">
+                        <button type="button" id="detectGpsBtn" class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                            <i class="fas fa-crosshairs me-1"></i> Detect Current GPS Location
+                        </button>
+                    </div>
+                    <div id="gpsAlert" class="small mt-2 d-none"></div>
+                </div>
+
+                <!-- Location Fields -->
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Plot Name / पहचान *</label>
+                        <input type="text" id="plot_name" class="form-control rounded-pill form-control-sm" placeholder="e.g. North Khet" value="Main Farm Plot" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Plot Area (Acres) / रकबा *</label>
+                        <input type="number" step="0.1" id="area_acres" class="form-control rounded-pill form-control-sm" placeholder="e.g. 2.5" value="1.0" required>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">State / UT (राज्य) *</label>
+                        <select id="stateSelect" class="form-select rounded-pill form-select-sm" required>
+                            <option value="">-- Select State / UT (36 States & UTs) --</option>
+                            <% if (typeof regionHierarchy !== 'undefined') { %>
+                                <% Object.keys(regionHierarchy).sort().forEach(st => { %>
+                                    <option value="<%= st %>" <%= st === 'Uttar Pradesh' ? 'selected' : '' %>><%= st %></option>
+                                <% }); %>
+                            <% } else { %>
+                                <option value="Uttar Pradesh" selected>Uttar Pradesh</option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label class="form-label small fw-bold text-muted mb-0">District (ज़िला) *</label>
+                            <a href="javascript:void(0)" id="toggleCustomDistrictBtn" class="small text-success text-decoration-none" style="font-size: 0.72rem;">
+                                <i class="fas fa-edit"></i> Custom District
+                            </a>
+                        </div>
+                        <select id="districtSelect" class="form-select rounded-pill form-select-sm mt-1" required>
+                            <option value="">-- Select District --</option>
+                        </select>
+                        <input type="text" id="customDistrictInput" class="form-control rounded-pill form-control-sm mt-1 d-none" placeholder="Type custom district / town name">
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Block / Tehsil (तहसील)</label>
+                        <input type="text" id="block_tehsil" class="form-control rounded-pill form-control-sm" placeholder="e.g. Sadar / Mohanlalganj" value="Sadar Tehsil">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Village / Gram (गाँव)</label>
+                        <input type="text" id="village" class="form-control rounded-pill form-control-sm" placeholder="e.g. Rampur" value="Gram Panchayat Area">
+                    </div>
+                </div>
+
+                <!-- Coordinates & Soil Texture -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Latitude</label>
+                        <input type="number" step="0.000001" id="latitude" class="form-control rounded-pill form-control-sm" placeholder="26.8467" value="26.8467">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Longitude</label>
+                        <input type="number" step="0.000001" id="longitude" class="form-control rounded-pill form-control-sm" placeholder="80.9462" value="80.9462">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-bold text-muted">Soil Texture</label>
+                        <select id="soil_type" class="form-select rounded-pill form-select-sm">
+                            <option value="Loamy Soil" selected>Loamy (दोमट)</option>
+                            <option value="Sandy Loam">Sandy Loam (बलुई दोमट)</option>
+                            <option value="Clay Loam">Clay Loam (मटियार दोमट)</option>
+                            <option value="Black Cotton Soil">Black Soil (काली मिट्टी)</option>
+                            <option value="Alluvial Soil">Alluvial (जलोढ़)</option>
+                            <option value="Red Laterite">Red / Laterite (लाल मिट्टी)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill" id="quickSavePlotBtn">
+                        <i class="fas fa-save me-1"></i> Save as Plot Profile
+                    </button>
+                    <span id="plotSaveMsg" class="small text-success d-none">Saved!</span>
+                </div>
+            </div>
+
+            <!-- STEP 2: Soil Test Parameters Form -->
+            <div class="glass-card p-4 shadow-sm mb-4">
+                <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="fas fa-vial text-warning me-2"></i>Step 2: Soil Test Measurements
+                </h5>
+
+                <!-- Data Source Selection -->
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">Data Source (परीक्षण का स्रोत) *</label>
+                        <select id="data_source" class="form-select rounded-pill form-select-sm">
+                            <option value="Government Soil Health Card (SHC)" selected>Govt Soil Health Card (SHC)</option>
+                            <option value="Laboratory Report">Certified Lab Report (STL)</option>
+                            <option value="Rapid Soil Testing Kit">Rapid Digital/Chemical Kit</option>
+                            <option value="Farmer Field Estimate">Farmer Field Estimate</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">SHC Sample / Report No.</label>
+                        <input type="text" id="shc_sample_number" class="form-control rounded-pill form-control-sm" placeholder="e.g. SHC-UP-2026-9012">
+                    </div>
+                </div>
+
+                <!-- Primary Parameters (N, P, K, pH) -->
+                <div class="p-3 bg-light rounded-4 border mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold small text-dark"><i class="fas fa-atom text-primary me-1"></i> Core Parameters (Required)</span>
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill">ICAR Mandatory</span>
+                    </div>
+
+                    <!-- Nitrogen -->
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold mb-0">Available Nitrogen (N)</label>
+                            <span class="d-block text-muted" style="font-size: 0.72rem;">नत्रजन (Alkaline KMnO4)</span>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" step="0.1" id="n_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 220" value="210" required>
+                        </div>
+                        <div class="col-3">
+                            <select id="n_unit" class="form-select rounded-pill form-select-sm">
+                                <option value="kg/ha" selected>kg/ha</option>
+                                <option value="ppm">ppm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Phosphorus -->
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold mb-0">Available Phosphorus (P)</label>
+                            <span class="d-block text-muted" style="font-size: 0.72rem;">स्फुर (Olsen / Bray P)</span>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" step="0.1" id="p_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 18" value="16.5" required>
+                        </div>
+                        <div class="col-3">
+                            <select id="p_unit" class="form-select rounded-pill form-select-sm">
+                                <option value="kg/ha" selected>kg/ha</option>
+                                <option value="ppm">ppm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Potassium -->
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold mb-0">Available Potassium (K)</label>
+                            <span class="d-block text-muted" style="font-size: 0.72rem;">पोटाश (NH4OAc K)</span>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" step="0.1" id="k_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 195" value="180" required>
+                        </div>
+                        <div class="col-3">
+                            <select id="k_unit" class="form-select rounded-pill form-select-sm">
+                                <option value="kg/ha" selected>kg/ha</option>
+                                <option value="ppm">ppm</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Soil pH -->
+                    <div class="row g-2 align-items-center">
+                        <div class="col-5">
+                            <label class="form-label small fw-semibold mb-0">Soil pH Reaction</label>
+                            <span class="d-block text-muted" style="font-size: 0.72rem;">मृदा पीएच (1:2.5 Suspension)</span>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" step="0.1" min="3.0" max="11.0" id="ph_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 6.8" value="6.8" required>
+                        </div>
+                        <div class="col-3">
+                            <span class="badge bg-light text-dark border w-100 py-2 rounded-pill small">pH Scale</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Secondary & Micronutrients (Optional Accordion) -->
+                <div class="accordion mb-3" id="microNutrientAccordion">
+                    <div class="accordion-item border rounded-4 overflow-hidden">
+                        <h2 class="accordion-header" id="headingMicro">
+                            <button class="accordion-button collapsed py-2 px-3 bg-light text-dark fw-semibold small" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMicro" aria-expanded="false" aria-controls="collapseMicro">
+                                <i class="fas fa-plus-circle text-success me-2"></i> Additional Parameters (EC, Organic Carbon & Micronutrients)
+                            </button>
+                        </h2>
+                        <div id="collapseMicro" class="accordion-collapse collapse" aria-labelledby="headingMicro" data-bs-parent="#microNutrientAccordion">
+                            <div class="accordion-body p-3 bg-white">
+                                <p class="text-muted small mb-2" style="font-size: 0.78rem;">
+                                    Leave blank if not tested. Missing values will NOT be treated as zero.
+                                </p>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Electrical Cond. (EC) [dS/m]</label>
+                                        <input type="number" step="0.01" id="ec_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 0.45">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Organic Carbon (OC) [%]</label>
+                                        <input type="number" step="0.01" id="oc_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 0.55">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Available Sulphur (S) [ppm]</label>
+                                        <input type="number" step="0.1" id="s_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 12.0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Available Zinc (Zn) [ppm]</label>
+                                        <input type="number" step="0.01" id="zn_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 0.75">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Available Iron (Fe) [ppm]</label>
+                                        <input type="number" step="0.1" id="fe_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 6.2">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Available Boron (B) [ppm]</label>
+                                        <input type="number" step="0.01" id="b_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 0.50">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Available Copper (Cu) [ppm]</label>
+                                        <input type="number" step="0.01" id="cu_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 0.40">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label small text-muted mb-1">Available Manganese (Mn) [ppm]</label>
+                                        <input type="number" step="0.1" id="mn_value" class="form-control rounded-pill form-control-sm" placeholder="e.g. 3.5">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agronomic & Sample Context -->
+                <div class="p-3 bg-light rounded-4 border mb-3">
+                    <span class="fw-bold small text-dark d-block mb-2"><i class="fas fa-seedling text-success me-1"></i> Step 3: Crop Details & Agronomic Context</span>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Target Crop (फसल) *</label>
+                            <select id="crop_name" class="form-select rounded-pill form-select-sm" required>
+                                <% if (typeof cropCatalog !== 'undefined') { %>
+                                    <% Object.keys(cropCatalog).forEach(cropKey => { %>
+                                        <option value="<%= cropKey %>" <%= cropKey === 'Wheat' ? 'selected' : '' %>>
+                                            <%= cropCatalog[cropKey].name_en %>
+                                        </option>
+                                    <% }); %>
+                                <% } else { %>
+                                    <option value="Wheat" selected>Wheat (गेहूं)</option>
+                                    <option value="Paddy (Rice)">Paddy / Rice (धान)</option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Season (मौसम) *</label>
+                            <select id="season" class="form-select rounded-pill form-select-sm">
+                                <option value="Rabi" selected>Rabi (रबी - Winter)</option>
+                                <option value="Kharif">Kharif (खरीफ - Monsoon)</option>
+                                <option value="Zaid">Zaid (जायद - Summer)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Growth Stage (फसल की अवस्था)</label>
+                            <select id="growth_stage" class="form-select rounded-pill form-select-sm">
+                                <option value="Pre-sowing / Basal" selected>Pre-sowing / Basal (बुवाई पूर्व)</option>
+                                <option value="Tillering / Vegetative">Tillering / Vegetative (कल्ले फूटना)</option>
+                                <option value="Flowering / Panicle">Flowering / Heading (फूल / बाली)</option>
+                                <option value="Grain Filling / Maturity">Grain Filling (दाना भराव)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Irrigation Type (सिंचाई प्रणाली)</label>
+                            <select id="irrigation_type" class="form-select rounded-pill form-select-sm">
+                                <option value="Canal / Tube Well (Irrigated)" selected>Canal / Tube Well (Irrigated)</option>
+                                <option value="Drip / Sprinkler Micro-irrigation">Drip / Sprinkler Micro-irrigation</option>
+                                <option value="Rainfed (Barani)">Rainfed (वर्षा आधारित)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Sample Depth (नमूने की गहराई)</label>
+                            <select id="sample_depth" class="form-select rounded-pill form-select-sm">
+                                <option value="0-15 cm (Plough layer)" selected>0-15 cm (Plough Layer / ऊपरी मिट्टी)</option>
+                                <option value="15-30 cm (Subsoil)">15-30 cm (Subsoil / निचली मिट्टी)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small text-muted mb-1">Target Yield (q/ha) [Optional]</label>
+                            <input type="number" step="1" id="target_yield" class="form-control rounded-pill form-control-sm" placeholder="e.g. 45" value="45">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="button" id="runAnalysisBtn" class="btn btn-success btn-lg w-100 py-3 rounded-pill fw-bold shadow">
+                    <i class="fas fa-flask me-2"></i> Run Scientific Soil Health Analysis
+                </button>
+                <div id="formValidationErrors" class="alert alert-danger mt-3 d-none rounded-4 small"></div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Output Report & History -->
+        <div class="col-xl-7 col-lg-6">
+            <!-- Loading Indicator -->
+            <div id="analysisLoading" class="glass-card p-5 text-center d-none shadow-sm animate-fade-in-up">
+                <div class="spinner-border text-success mb-3" style="width: 3.5rem; height: 3.5rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4 class="fw-bold text-dark">Processing Soil Intelligence Engine...</h4>
+                <p class="text-muted small">
+                    Classifying NPK against ICAR calibration curves, applying STCR fertilizer equations, and generating bilingual advisory narratives.
+                </p>
+            </div>
+
+            <!-- Placeholder Before First Analysis -->
+            <div id="reportPlaceholder" class="glass-card p-5 text-center shadow-sm">
+                <i class="fas fa-file-invoice fa-4x text-muted opacity-50 mb-3"></i>
+                <h4 class="fw-bold text-dark">Ready for Soil Health Assessment</h4>
+                <p class="text-muted small mx-auto" style="max-width: 480px;">
+                    Enter your soil test values and farm details on the left, then click <strong>"Run Scientific Soil Health Analysis"</strong> to generate a complete, bilingual decision-support report.
+                </p>
+            </div>
+
+            <!-- Main Full Bilingual Report Container -->
+            <div id="reportContainer" class="d-none">
+                <!-- Report Action Bar -->
+                <div class="glass-card p-3 mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2 shadow-sm">
+                    <!-- Language Switcher Tabs -->
+                    <ul class="nav nav-pills" id="langTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill px-3 py-1 fw-bold small" id="en-tab" data-bs-toggle="pill" data-bs-target="#en-content" type="button" role="tab">
+                                🇬🇧 English Report
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill px-3 py-1 fw-bold small ms-1" id="hi-tab" data-bs-toggle="pill" data-bs-target="#hi-content" type="button" role="tab">
+                                🇮🇳 हिंदी रिपोर्ट
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i> Print / PDF
+                        </button>
+                        <button class="btn btn-outline-success btn-sm rounded-pill px-3" id="copySummaryBtn">
+                            <i class="fas fa-copy me-1"></i> Copy
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Printable Report Area -->
+                <div class="printable-report">
+                    <div class="tab-content" id="reportTabContent">
+                        
+                        <!-- ================= ENGLISH TAB ================= -->
+                        <div class="tab-pane fade show active" id="en-content" role="tabpanel">
+                            <!-- Report Header Card -->
+                            <div class="glass-card p-4 shadow-sm mb-3">
+                                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                    <div>
+                                        <span class="badge bg-success rounded-pill px-3 py-1 mb-2">AgroHaat Soil Health Card</span>
+                                        <h3 class="fw-bold text-dark mb-0" id="repPlotNameEn">Main Farm Plot</h3>
+                                        <p class="text-muted small mb-0" id="repLocationEn">Lucknow, Uttar Pradesh</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="d-block small text-muted">Overall Fertility Rating</span>
+                                        <h4 class="fw-bold mb-0" id="repRatingEn">--</h4>
+                                        <span class="badge bg-light text-dark border rounded-pill mt-1" id="repScoreEn">Score: --/100</span>
+                                    </div>
+                                </div>
+
+                                <!-- Metadata Grid -->
+                                <div class="row g-2 small text-muted mb-3 bg-light p-3 rounded-4">
+                                    <div class="col-sm-4"><strong>Target Crop:</strong> <span id="repCropEn" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>Plot Area:</strong> <span id="repAreaEn" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>Soil Texture:</strong> <span id="repSoilTypeEn" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>Sample Depth:</strong> <span id="repDepthEn" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>Sample Date:</strong> <span id="repDateEn" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>Data Source:</strong> <span id="repSourceEn" class="text-dark">--</span></div>
+                                </div>
+
+                                <!-- AI Farmer-Friendly Summary Banner -->
+                                <div class="p-3 bg-success-subtle text-success-emphasis rounded-4 border border-success-subtle mb-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="fas fa-robot text-success me-2"></i>
+                                        <strong>Farmer Executive Summary (AI Verified):</strong>
+                                    </div>
+                                    <p class="mb-0 small" id="aiSummaryEn">--</p>
+                                </div>
+
+                                <!-- Nutrient Status Cards (N, P, K, pH) -->
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-chart-bar text-primary me-2"></i>Primary Soil Health Parameters</h6>
+                                <div class="row g-3 mb-3">
+                                    <!-- N -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">Nitrogen (N)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valNEn">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgeNEn">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonNEn">--</p>
+                                        </div>
+                                    </div>
+                                    <!-- P -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">Phosphorus (P)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valPEn">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgePEn">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonPEn">--</p>
+                                        </div>
+                                    </div>
+                                    <!-- K -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">Potassium (K)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valKEn">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgeKEn">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonKEn">--</p>
+                                        </div>
+                                    </div>
+                                    <!-- pH -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">Soil pH</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valPhEn">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgePhEn">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonPhEn">--</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Optional Nutrients Display -->
+                                <div id="optionalNutrientsSecEn" class="mb-3 d-none">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-layer-group text-secondary me-2"></i>Secondary & Micronutrient Profile</h6>
+                                    <div class="row g-2" id="optionalNutrientsGridEn"></div>
+                                </div>
+
+                                <!-- Commercial Fertilizer Application Schedule -->
+                                <div class="p-3 bg-light rounded-4 border mb-3">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="fas fa-balance-scale text-success me-2"></i>Recommended Commercial Fertilizer Schedule (Per Acre)
+                                    </h6>
+                                    <p class="text-muted small mb-2" style="font-size: 0.8rem;">
+                                        Calculated based on ICAR-STCR target yield formulas & nutrient removal factors for the selected crop.
+                                    </p>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm bg-white rounded-3 mb-0">
+                                            <thead class="table-light small">
+                                                <tr>
+                                                    <th>Fertilizer Product</th>
+                                                    <th>Dosage / Acre</th>
+                                                    <th>Total for Plot</th>
+                                                    <th>Stage & Method of Application</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="fertilizerTableEn" class="small"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Soil Amendments Section (Conditional) -->
+                                <div id="amendmentsSecEn" class="p-3 bg-warning-subtle text-warning-emphasis rounded-4 border border-warning-subtle mb-3 d-none">
+                                    <h6 class="fw-bold mb-2"><i class="fas fa-shield-alt me-2"></i>Required Soil Conditioners & Amendments</h6>
+                                    <ul id="amendmentsListEn" class="mb-0 small ps-3"></ul>
+                                </div>
+
+                                <!-- Practical Next Steps -->
+                                <div class="p-3 bg-white rounded-4 border mb-3">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-list-check text-primary me-2"></i>Agronomic Best Practices & Practical Next Steps</h6>
+                                    <ol id="nextStepsListEn" class="mb-0 small ps-3 text-muted"></ol>
+                                </div>
+
+                                <!-- Proactive AI Follow-up FAQs -->
+                                <div class="p-3 bg-light rounded-4 border mb-3" id="faqsSecEn">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-question-circle text-info me-2"></i>Frequently Asked Questions for Your Field</h6>
+                                    <div id="faqsListEn" class="small"></div>
+                                </div>
+
+                                <!-- Citations & Disclaimers -->
+                                <div class="pt-3 border-top small text-muted" style="font-size: 0.75rem;">
+                                    <strong>Scientific Reference Citations:</strong>
+                                    <ul class="mb-1 ps-3">
+                                        <li>ICAR - Indian Institute of Soil Science (IISS), Bhopal: Soil Fertility Ratings of Indian Soils</li>
+                                        <li>DAC&FW, Ministry of Agriculture & Farmers Welfare, GoI: Soil Health Card API Guidelines v1.35</li>
+                                        <li>State Agricultural Universities (SAU) General Fertilizer Recommendations (GFR)</li>
+                                    </ul>
+                                    <em>Disclaimer: This assessment is an agricultural decision-support tool. Always consider local rainfall, seasonal weather conditions, and pest pressures prior to field application.</em>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ================= HINDI TAB ================= -->
+                        <div class="tab-pane fade" id="hi-content" role="tabpanel">
+                            <!-- Report Header Card (Hindi) -->
+                            <div class="glass-card p-4 shadow-sm mb-3">
+                                <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                                    <div>
+                                        <span class="badge bg-success rounded-pill px-3 py-1 mb-2">एग्रो-हाट मृदा स्वास्थ्य कार्ड (Soil Health Card)</span>
+                                        <h3 class="fw-bold text-dark mb-0" id="repPlotNameHi">मुख्य खेत</h3>
+                                        <p class="text-muted small mb-0" id="repLocationHi">लखनऊ, उत्तर प्रदेश</p>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="d-block small text-muted">समग्र उर्वरता श्रेणी</span>
+                                        <h4 class="fw-bold mb-0 text-success" id="repRatingHi">--</h4>
+                                        <span class="badge bg-light text-dark border rounded-pill mt-1" id="repScoreHi">उर्वरता स्कोर: --/100</span>
+                                    </div>
+                                </div>
+
+                                <!-- Metadata Grid (Hindi) -->
+                                <div class="row g-2 small text-muted mb-3 bg-light p-3 rounded-4">
+                                    <div class="col-sm-4"><strong>फसल:</strong> <span id="repCropHi" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>खेत का रकबा:</strong> <span id="repAreaHi" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>मिट्टी की बनावट:</strong> <span id="repSoilTypeHi" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>नमूने की गहराई:</strong> <span id="repDepthHi" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>नमूना तिथि:</strong> <span id="repDateHi" class="text-dark">--</span></div>
+                                    <div class="col-sm-4"><strong>जांच का स्रोत:</strong> <span id="repSourceHi" class="text-dark">--</span></div>
+                                </div>
+
+                                <!-- AI Summary Banner (Hindi) -->
+                                <div class="p-3 bg-success-subtle text-success-emphasis rounded-4 border border-success-subtle mb-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="fas fa-robot text-success me-2"></i>
+                                        <strong>किसान सारांश एवं प्रमुख परामर्श (एआई सत्यापन):</strong>
+                                    </div>
+                                    <p class="mb-0 small" id="aiSummaryHi">--</p>
+                                </div>
+
+                                <!-- Nutrient Status Cards (Hindi) -->
+                                <h6 class="fw-bold text-dark mb-3"><i class="fas fa-chart-bar text-primary me-2"></i>प्रमुख पोषक तत्व स्थिति (एन-पी-के एवं पीएच)</h6>
+                                <div class="row g-3 mb-3">
+                                    <!-- N -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">उपलब्ध नत्रजन (N)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valNHi">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgeNHi">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonNHi">--</p>
+                                        </div>
+                                    </div>
+                                    <!-- P -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">उपलब्ध स्फुर (P)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valPHi">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgePHi">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonPHi">--</p>
+                                        </div>
+                                    </div>
+                                    <!-- K -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">उपलब्ध पोटाश (K)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valKHi">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgeKHi">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonKHi">--</p>
+                                        </div>
+                                    </div>
+                                    <!-- pH -->
+                                    <div class="col-sm-6 col-md-3">
+                                        <div class="p-3 bg-white rounded-4 border shadow-sm h-100 text-center">
+                                            <span class="small text-muted d-block mb-1">मृदा पीएच (pH)</span>
+                                            <h4 class="fw-bold text-dark mb-1" id="valPhHi">--</h4>
+                                            <span class="badge rounded-pill px-2 py-1 mb-2" id="badgePhHi">--</span>
+                                            <p class="text-muted mb-0" style="font-size: 0.72rem;" id="reasonPhHi">--</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Optional Nutrients Display (Hindi) -->
+                                <div id="optionalNutrientsSecHi" class="mb-3 d-none">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-layer-group text-secondary me-2"></i>द्वितीयक एवं सूक्ष्म पोषक तत्व स्थिति</h6>
+                                    <div class="row g-2" id="optionalNutrientsGridHi"></div>
+                                </div>
+
+                                <!-- Commercial Fertilizer Application Schedule (Hindi) -->
+                                <div class="p-3 bg-light rounded-4 border mb-3">
+                                    <h6 class="fw-bold text-dark mb-2">
+                                        <i class="fas fa-balance-scale text-success me-2"></i>रासायनिक खाद की अनुशंसित मात्रा (प्रति एकड़)
+                                    </h6>
+                                    <p class="text-muted small mb-2" style="font-size: 0.8rem;">
+                                        भारतीय कृषि अनुसंधान परिषद (ICAR) के मानकों के आधार पर गणना की गई वास्तविक मात्रा।
+                                    </p>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-sm bg-white rounded-3 mb-0">
+                                            <thead class="table-light small">
+                                                <tr>
+                                                    <th>उर्वरक का नाम</th>
+                                                    <th>मात्रा (प्रति एकड़)</th>
+                                                    <th>कुल खेत की मात्रा</th>
+                                                    <th>डालने का समय एवं तरीका</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="fertilizerTableHi" class="small"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <!-- Soil Amendments Section (Hindi) -->
+                                <div id="amendmentsSecHi" class="p-3 bg-warning-subtle text-warning-emphasis rounded-4 border border-warning-subtle mb-3 d-none">
+                                    <h6 class="fw-bold mb-2"><i class="fas fa-shield-alt me-2"></i>मृदा सुधारक एवं विशेष उपचार</h6>
+                                    <ul id="amendmentsListHi" class="mb-0 small ps-3"></ul>
+                                </div>
+
+                                <!-- Practical Next Steps (Hindi) -->
+                                <div class="p-3 bg-white rounded-4 border mb-3">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-list-check text-primary me-2"></i>किसान भाइयों के लिए व्यावहारिक निर्देश</h6>
+                                    <ol id="nextStepsListHi" class="mb-0 small ps-3 text-muted"></ol>
+                                </div>
+
+                                <!-- Proactive AI Follow-up FAQs (Hindi) -->
+                                <div class="p-3 bg-light rounded-4 border mb-3" id="faqsSecHi">
+                                    <h6 class="fw-bold text-dark mb-2"><i class="fas fa-question-circle text-info me-2"></i>आपके खेत से संबंधित अक्सर पूछे जाने वाले प्रश्न</h6>
+                                    <div id="faqsListHi" class="small"></div>
+                                </div>
+
+                                <!-- Citations (Hindi) -->
+                                <div class="pt-3 border-top small text-muted" style="font-size: 0.75rem;">
+                                    <strong>वैज्ञानिक संदर्भ एवं स्रोत:</strong>
+                                    <ul class="mb-1 ps-3">
+                                        <li>भारतीय मृदा विज्ञान संस्थान (IISS - ICAR), भोपाल</li>
+                                        <li>कृषि एवं किसान कल्याण मंत्रालय, भारत सरकार (मृदा स्वास्थ्य कार्ड दिशा-निर्देश 2024)</li>
+                                        <li>राज्य कृषि विश्वविद्यालय सामान्य उर्वरक अनुशंसाएं (GFR)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Previous Soil Health History -->
+            <div class="glass-card p-4 shadow-sm mt-4">
+                <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="fas fa-history text-secondary me-2"></i>Saved Soil Analysis Records
+                    </h5>
+                    <span class="badge bg-secondary-subtle text-secondary rounded-pill px-3">
+                        <%= typeof history !== 'undefined' ? history.length : 0 %> Records
+                    </span>
+                </div>
+
+                <div class="row g-3" id="historyCardsContainer">
+                    <% if (typeof history !== 'undefined' && history.length > 0) { %>
+                        <% history.forEach(item => { %>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-white rounded-4 border shadow-sm h-100 position-relative">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="fw-bold text-dark mb-0"><%= item.crop_name %></h6>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill small">
+                                            <%= item.overall_rating || 'Assessed' %>
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block mb-2">
+                                        <i class="fas fa-map-marker-alt text-danger me-1"></i><%= item.plot_name %> • <%= new Date(item.created_at).toLocaleDateString() %>
+                                    </small>
+                                    <div class="d-flex justify-content-between small text-muted bg-light p-2 rounded-3 mb-2">
+                                        <span>N: <strong><%= item.n_value %></strong> <%= item.n_unit %></span>
+                                        <span>P: <strong><%= item.p_value %></strong> <%= item.p_unit %></span>
+                                        <span>K: <strong><%= item.k_value %></strong> <%= item.k_unit %></span>
+                                        <span>pH: <strong><%= item.ph_value %></strong></span>
+                                    </div>
+                                    <button class="btn btn-outline-primary btn-sm rounded-pill w-100 loadHistoryBtn" data-id="<%= item.id %>">
+                                        <i class="fas fa-eye me-1"></i> View Full Report
+                                    </button>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="col-12 text-center py-4 text-muted">
+                            <i class="fas fa-folder-open fa-2x mb-2 opacity-50"></i>
+                            <p class="small mb-0">No past soil tests recorded yet. Run your first check above!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Government SHC API Status Modal -->
+<div class="modal fade" id="shcApiModal" tabindex="-1" aria-labelledby="shcApiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="shcApiModalLabel">
+                    <i class="fas fa-landmark me-2"></i>GoI Soil Health Card API Protocol
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 small">
+                <div class="alert alert-success border-0 rounded-3 mb-3">
+                    <strong>Integration Architecture:</strong> Official Government of India Soil Health Card (DAC&FW) API Integration Guidelines v1.35.
+                </div>
+                <table class="table table-bordered table-sm">
+                    <tbody>
+                        <tr>
+                            <th class="bg-light">Production Endpoint</th>
+                            <td><code>https://soilhealth4.dac.gov.in/</code></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Staging Endpoint</th>
+                            <td><code>https://shc-staging.ddns.net/</code></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Protocol</th>
+                            <td>GraphQL over HTTPS with JWT Bearer Token</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Onboarding Contact</th>
+                            <td><code>soilhealthcard-support@krishitantra.com</code></td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Operational Mode</th>
+                            <td>
+                                <span class="badge bg-primary">Verified Local ICAR Engine</span>
+                                <span class="d-block text-muted mt-1" style="font-size: 0.72rem;">
+                                    Direct third-party access to official government servers requires organizational agency credentials. AgroHaat executes the exact same ICAR algorithms locally and provides official portal links.
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="text-center mt-3">
+                    <a href="https://soilhealth.dac.gov.in/" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                        <i class="fas fa-external-link-alt me-1"></i> Visit Official SHC Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Add New Farm Plot Modal -->
+<div class="modal fade" id="addPlotModal" tabindex="-1" aria-labelledby="addPlotModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold" id="addPlotModalLabel">
+                    <i class="fas fa-plus-circle me-2"></i>Save New Farm Plot Profile
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="newPlotForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Plot / Farm Name (खेत का नाम) *</label>
+                        <input type="text" id="modal_plot_name" class="form-control rounded-pill form-control-sm" placeholder="e.g. South Mango Orchard" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Area (Acres) *</label>
+                            <input type="number" step="0.1" id="modal_area_acres" class="form-control rounded-pill form-control-sm" placeholder="e.g. 2.0" value="1.0" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Survey / Khasra No.</label>
+                            <input type="text" id="modal_survey_no" class="form-control rounded-pill form-control-sm" placeholder="e.g. 142/A">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">State / UT (राज्य) *</label>
+                            <select id="modal_state" class="form-select rounded-pill form-select-sm" required>
+                                <% if (typeof regionHierarchy !== 'undefined') { %>
+                                    <% Object.keys(regionHierarchy).sort().forEach(st => { %>
+                                        <option value="<%= st %>" <%= st === 'Uttar Pradesh' ? 'selected' : '' %>><%= st %></option>
+                                    <% }); %>
+                                <% } else { %>
+                                    <option value="Uttar Pradesh" selected>Uttar Pradesh</option>
+                                <% } %>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">District (ज़िला) *</label>
+                            <select id="modal_district" class="form-select rounded-pill form-select-sm" required></select>
+                            <input type="text" id="modal_custom_district" class="form-control rounded-pill form-control-sm mt-1 d-none" placeholder="Enter custom district">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Block / Tehsil</label>
+                            <input type="text" id="modal_block" class="form-control rounded-pill form-control-sm" value="Sadar Tehsil">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Village</label>
+                            <input type="text" id="modal_village" class="form-control rounded-pill form-control-sm" value="Mohanlalganj">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Soil Texture</label>
+                        <select id="modal_soil_type" class="form-select rounded-pill form-select-sm">
+                            <option value="Loamy Soil" selected>Loamy (दोमट)</option>
+                            <option value="Sandy Loam">Sandy Loam (बलुई दोमट)</option>
+                            <option value="Clay Loam">Clay Loam (मटियार दोमट)</option>
+                            <option value="Black Cotton Soil">Black Cotton Soil (काली मिट्टी)</option>
+                            <option value="Alluvial Soil">Alluvial (जलोढ़)</option>
+                        </select>
+                    </div>
+                    <div id="modalPlotError" class="alert alert-danger d-none small rounded-3 p-2 mb-2"></div>
+                    <button type="submit" class="btn btn-success rounded-pill w-100 py-2 fw-bold" id="savePlotModalSubmitBtn">
+                        Save Farm Plot
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= JAVASCRIPT LOGIC ================= -->
+<script>
+// State to District Mapping Directory (All 28 States and 8 Union Territories)
+const REGION_DATA = <%- JSON.stringify(typeof regionHierarchy !== 'undefined' ? regionHierarchy : {}) %>;
+
+// Populate Districts based on selected State
+function updateDistrictDropdown(selectedState, selectedDistrict = '') {
+    const districtSelect = document.getElementById('districtSelect');
+    const customInput = document.getElementById('customDistrictInput');
+    districtSelect.innerHTML = '<option value="">-- Select District --</option>';
+    
+    let matched = false;
+    if (selectedState && REGION_DATA[selectedState]) {
+        const districts = (REGION_DATA[selectedState].districts || []).slice().sort();
+        districts.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            if (selectedDistrict && d.toLowerCase() === selectedDistrict.toLowerCase()) {
+                opt.selected = true;
+                matched = true;
+            } else if (!selectedDistrict && d === districts[0]) {
+                opt.selected = true;
+                matched = true;
+            }
+            districtSelect.appendChild(opt);
+        });
+    }
+
+    // Always add Custom District option
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '✏️ Other / Enter Custom District...';
+    districtSelect.appendChild(customOpt);
+
+    if (selectedDistrict && !matched) {
+        customOpt.selected = true;
+        customInput.value = selectedDistrict;
+        customInput.classList.remove('d-none');
+    } else if (districtSelect.value !== '__custom__') {
+        customInput.classList.add('d-none');
+    }
+}
+
+// Update Modal District Dropdown
+function updateModalDistrictDropdown(selectedState, selectedDistrict = '') {
+    const modalDistrict = document.getElementById('modal_district');
+    const modalCustomInput = document.getElementById('modal_custom_district');
+    if (!modalDistrict) return;
+    modalDistrict.innerHTML = '<option value="">-- Select District --</option>';
+
+    let matched = false;
+    if (selectedState && REGION_DATA[selectedState]) {
+        const districts = (REGION_DATA[selectedState].districts || []).slice().sort();
+        districts.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            if (selectedDistrict && d.toLowerCase() === selectedDistrict.toLowerCase()) {
+                opt.selected = true;
+                matched = true;
+            }
+            modalDistrict.appendChild(opt);
+        });
+    }
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '✏️ Other / Enter Custom District...';
+    modalDistrict.appendChild(customOpt);
+
+    if (selectedDistrict && !matched) {
+        customOpt.selected = true;
+        if (modalCustomInput) {
+            modalCustomInput.value = selectedDistrict;
+            modalCustomInput.classList.remove('d-none');
+        }
+    } else if (modalDistrict.value !== '__custom__' && modalCustomInput) {
+        modalCustomInput.classList.add('d-none');
+    }
+}
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', () => {
+    const stateSelect = document.getElementById('stateSelect');
+    updateDistrictDropdown(stateSelect.value, 'Lucknow');
+
+    stateSelect.addEventListener('change', (e) => {
+        updateDistrictDropdown(e.target.value);
+    });
+
+    const districtSelect = document.getElementById('districtSelect');
+    const customDistrictInput = document.getElementById('customDistrictInput');
+    districtSelect.addEventListener('change', (e) => {
+        if (e.target.value === '__custom__') {
+            customDistrictInput.classList.remove('d-none');
+            customDistrictInput.focus();
+        } else {
+            customDistrictInput.classList.add('d-none');
+        }
+    });
+
+    const toggleCustomBtn = document.getElementById('toggleCustomDistrictBtn');
+    if (toggleCustomBtn) {
+        toggleCustomBtn.addEventListener('click', () => {
+            districtSelect.value = '__custom__';
+            customDistrictInput.classList.remove('d-none');
+            customDistrictInput.focus();
+        });
+    }
+
+    // Modal state listener
+    const modalState = document.getElementById('modal_state');
+    if (modalState) {
+        updateModalDistrictDropdown(modalState.value, 'Lucknow');
+        modalState.addEventListener('change', (e) => {
+            updateModalDistrictDropdown(e.target.value);
+        });
+    }
+
+    const modalDistrict = document.getElementById('modal_district');
+    const modalCustomInput = document.getElementById('modal_custom_district');
+    if (modalDistrict && modalCustomInput) {
+        modalDistrict.addEventListener('change', (e) => {
+            if (e.target.value === '__custom__') {
+                modalCustomInput.classList.remove('d-none');
+                modalCustomInput.focus();
+            } else {
+                modalCustomInput.classList.add('d-none');
+            }
+        });
+    }
+
+    // Saved plot selector change handler
+    const savedPlotSelect = document.getElementById('savedPlotSelect');
+    savedPlotSelect.addEventListener('change', (e) => {
+        const opt = e.target.selectedOptions[0];
+        if (!opt || !opt.value) return;
+
+        document.getElementById('plot_name').value = opt.dataset.name || '';
+        document.getElementById('area_acres').value = opt.dataset.area || '1.0';
+        document.getElementById('block_tehsil').value = opt.dataset.block || '';
+        document.getElementById('village').value = opt.dataset.village || '';
+        document.getElementById('latitude').value = opt.dataset.lat || '';
+        document.getElementById('longitude').value = opt.dataset.lon || '';
+        document.getElementById('soil_type').value = opt.dataset.soil || 'Loamy Soil';
+
+        if (opt.dataset.state) {
+            document.getElementById('stateSelect').value = opt.dataset.state;
+            updateDistrictDropdown(opt.dataset.state, opt.dataset.district);
+        }
+    });
+
+    document.getElementById('clearPlotBtn').addEventListener('click', () => {
+        savedPlotSelect.value = '';
+        document.getElementById('plot_name').value = 'New Farm Plot';
+        document.getElementById('area_acres').value = '1.0';
+    });
+});
+
+// GPS Auto Detection
+document.getElementById('detectGpsBtn').addEventListener('click', () => {
+    const statusBadge = document.getElementById('gpsStatusBadge');
+    const alertBox = document.getElementById('gpsAlert');
+    const btn = document.getElementById('detectGpsBtn');
+
+    if (!navigator.geolocation) {
+        alertBox.className = 'small mt-2 alert alert-danger p-2 rounded-3';
+        alertBox.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i> Geolocation is not supported by your browser.';
+        alertBox.classList.remove('d-none');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Detecting GPS...';
+    statusBadge.className = 'badge bg-warning text-dark rounded-pill px-2';
+    statusBadge.textContent = 'Acquiring GPS';
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const acc = Math.round(position.coords.accuracy || 10);
+
+            document.getElementById('latitude').value = lat.toFixed(6);
+            document.getElementById('longitude').value = lon.toFixed(6);
+
+            statusBadge.className = 'badge bg-info text-white rounded-pill px-2';
+            statusBadge.textContent = 'Geocoding...';
+
+            try {
+                const res = await fetch('/api/soil/reverse-geocode', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ latitude: lat, longitude: lon })
+                });
+                const loc = await res.json();
+
+                if (loc.state) {
+                    const stSelect = document.getElementById('stateSelect');
+                    stSelect.value = loc.state;
+                    updateDistrictDropdown(loc.state, loc.district);
+                }
+                if (loc.block) document.getElementById('block_tehsil').value = loc.block;
+                if (loc.village) document.getElementById('village').value = loc.village;
+
+                statusBadge.className = 'badge bg-success text-white rounded-pill px-2';
+                statusBadge.textContent = 'GPS Locked';
+
+                alertBox.className = 'small mt-2 alert alert-success p-2 rounded-3';
+                alertBox.innerHTML = `<i class="fas fa-check-circle me-1"></i> GPS Detected: <strong>${loc.village || ''}, ${loc.district}, ${loc.state}</strong> (Accuracy: ±${acc}m)`;
+                alertBox.classList.remove('d-none');
+            } catch (e) {
+                statusBadge.className = 'badge bg-success text-white rounded-pill px-2';
+                statusBadge.textContent = 'Coordinates Set';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Re-detect GPS';
+        },
+        (error) => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-crosshairs me-1"></i> Detect Current GPS Location';
+            statusBadge.className = 'badge bg-danger text-white rounded-pill px-2';
+            statusBadge.textContent = 'GPS Failed';
+
+            let msg = 'Could not acquire GPS coordinates.';
+            if (error.code === error.PERMISSION_DENIED) {
+                msg = 'Location permission was denied in your browser. Please select your State and District manually above.';
+            } else if (error.code === error.TIMEOUT) {
+                msg = 'GPS acquisition timed out. Please enter manual coordinates or select your district.';
+            }
+
+            alertBox.className = 'small mt-2 alert alert-warning p-2 rounded-3';
+            alertBox.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${msg}`;
+            alertBox.classList.remove('d-none');
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+});
+
+// Quick Save Plot to DB
+// Quick Save Plot to DB
+document.getElementById('quickSavePlotBtn').addEventListener('click', async () => {
+    const distSelect = document.getElementById('districtSelect');
+    const customDist = document.getElementById('customDistrictInput');
+    const actualDistrict = (distSelect.value === '__custom__' || !distSelect.value)
+        ? (customDist.value.trim() || 'Central District')
+        : distSelect.value;
+
+    const payload = {
+        plot_name: document.getElementById('plot_name').value || 'My Farm Plot',
+        area_acres: document.getElementById('area_acres').value || 1.0,
+        state: document.getElementById('stateSelect').value || 'Uttar Pradesh',
+        district: actualDistrict,
+        block_tehsil: document.getElementById('block_tehsil').value || 'Sadar',
+        village: document.getElementById('village').value || 'Village',
+        latitude: document.getElementById('latitude').value || null,
+        longitude: document.getElementById('longitude').value || null,
+        soil_type: document.getElementById('soil_type').value || 'Loamy Soil'
+    };
+
+    try {
+        const res = await fetch('/api/soil/plots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            const msg = document.getElementById('plotSaveMsg');
+            msg.classList.remove('d-none');
+            setTimeout(() => msg.classList.add('d-none'), 3000);
+
+            // Add to dropdown
+            const opt = document.createElement('option');
+            opt.value = data.plot.id;
+            opt.textContent = `${data.plot.plot_name} (${data.plot.district} - ${data.plot.area_acres} Acres)`;
+            opt.selected = true;
+            document.getElementById('savedPlotSelect').appendChild(opt);
+        }
+    } catch (e) {
+        alert('Could not save plot: ' + e.message);
+    }
+});
+
+// Add Plot Modal Form Submit
+document.getElementById('newPlotForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('savePlotModalSubmitBtn');
+    btn.disabled = true;
+
+    const modalDistSelect = document.getElementById('modal_district');
+    const modalCustomDist = document.getElementById('modal_custom_district');
+    const actualModalDistrict = (modalDistSelect.value === '__custom__' || !modalDistSelect.value)
+        ? (modalCustomDist.value.trim() || 'Central District')
+        : modalDistSelect.value;
+
+    const payload = {
+        plot_name: document.getElementById('modal_plot_name').value,
+        area_acres: document.getElementById('modal_area_acres').value,
+        survey_number: document.getElementById('modal_survey_no').value,
+        state: document.getElementById('modal_state').value,
+        district: actualModalDistrict,
+        block_tehsil: document.getElementById('modal_block').value,
+        village: document.getElementById('modal_village').value,
+        soil_type: document.getElementById('modal_soil_type').value
+    };
+
+    try {
+        const res = await fetch('/api/soil/plots', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('addPlotModal')).hide();
+            // Populate form
+            document.getElementById('plot_name').value = data.plot.plot_name;
+            document.getElementById('area_acres').value = data.plot.area_acres;
+            document.getElementById('stateSelect').value = data.plot.state;
+            updateDistrictDropdown(data.plot.state, data.plot.district);
+            document.getElementById('block_tehsil').value = data.plot.block_tehsil;
+            document.getElementById('village').value = data.plot.village;
+
+            const opt = document.createElement('option');
+            opt.value = data.plot.id;
+            opt.textContent = `${data.plot.plot_name} (${data.plot.district} - ${data.plot.area_acres} Acres)`;
+            opt.selected = true;
+            document.getElementById('savedPlotSelect').appendChild(opt);
+        } else {
+            document.getElementById('modalPlotError').textContent = data.error || 'Failed to save plot';
+            document.getElementById('modalPlotError').classList.remove('d-none');
+        }
+    } catch (err) {
+        document.getElementById('modalPlotError').textContent = err.message;
+        document.getElementById('modalPlotError').classList.remove('d-none');
+    }
+    btn.disabled = false;
+});
+
+// ================= RUN ANALYSIS =================
+document.getElementById('runAnalysisBtn').addEventListener('click', async () => {
+    const errBox = document.getElementById('formValidationErrors');
+    errBox.classList.add('d-none');
+    errBox.innerHTML = '';
+
+    const getSelectedDistrict = () => {
+        const select = document.getElementById('districtSelect');
+        const custom = document.getElementById('customDistrictInput');
+        if (select.value === '__custom__' || !select.value) {
+            return custom.value.trim() || 'Central District';
+        }
+        return select.value;
+    };
+
+    const payload = {
+        plot_name: document.getElementById('plot_name').value,
+        area_acres: document.getElementById('area_acres').value,
+        state: document.getElementById('stateSelect').value,
+        district: getSelectedDistrict(),
+        block_tehsil: document.getElementById('block_tehsil').value,
+        village: document.getElementById('village').value,
+        latitude: document.getElementById('latitude').value,
+        longitude: document.getElementById('longitude').value,
+        soil_type: document.getElementById('soil_type').value,
+        data_source: document.getElementById('data_source').value,
+        shc_sample_number: document.getElementById('shc_sample_number').value,
+        n_value: document.getElementById('n_value').value,
+        n_unit: document.getElementById('n_unit').value,
+        p_value: document.getElementById('p_value').value,
+        p_unit: document.getElementById('p_unit').value,
+        k_value: document.getElementById('k_value').value,
+        k_unit: document.getElementById('k_unit').value,
+        ph_value: document.getElementById('ph_value').value,
+        ec_value: document.getElementById('ec_value').value,
+        oc_value: document.getElementById('oc_value').value,
+        s_value: document.getElementById('s_value').value,
+        zn_value: document.getElementById('zn_value').value,
+        fe_value: document.getElementById('fe_value').value,
+        b_value: document.getElementById('b_value').value,
+        cu_value: document.getElementById('cu_value').value,
+        mn_value: document.getElementById('mn_value').value,
+        crop_name: document.getElementById('crop_name').value,
+        season: document.getElementById('season').value,
+        growth_stage: document.getElementById('growth_stage').value,
+        irrigation_type: document.getElementById('irrigation_type').value,
+        sample_depth: document.getElementById('sample_depth').value,
+        target_yield: document.getElementById('target_yield').value
+    };
+
+    // UI Loading state
+    const runBtn = document.getElementById('runAnalysisBtn');
+    runBtn.disabled = true;
+    runBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Analyzing Soil Health...';
+
+    document.getElementById('reportPlaceholder').classList.add('d-none');
+    document.getElementById('reportContainer').classList.add('d-none');
+    document.getElementById('analysisLoading').classList.remove('d-none');
+
+    try {
+        const response = await fetch('/api/soil/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!data.success) {
+            document.getElementById('analysisLoading').classList.add('d-none');
+            document.getElementById('reportPlaceholder').classList.remove('d-none');
+            errBox.innerHTML = `<strong>Validation Error:</strong><br>${(data.errors || [data.error]).join('<br>')}`;
+            errBox.classList.remove('d-none');
+            runBtn.disabled = false;
+            runBtn.innerHTML = '<i class="fas fa-flask me-2"></i> Run Scientific Soil Health Analysis';
+            return;
+        }
+
+        // Render full bilingual report
+        renderBilingualReport(data.assessment, data.ai_explanation);
+
+        document.getElementById('analysisLoading').classList.add('d-none');
+        document.getElementById('reportContainer').classList.remove('d-none');
+
+    } catch (err) {
+        document.getElementById('analysisLoading').classList.add('d-none');
+        document.getElementById('reportPlaceholder').classList.remove('d-none');
+        errBox.innerHTML = `<strong>Server Connection Error:</strong> ${err.message}`;
+        errBox.classList.remove('d-none');
+    }
+
+    runBtn.disabled = false;
+    runBtn.innerHTML = '<i class="fas fa-flask me-2"></i> Run Scientific Soil Health Analysis';
+});
+
+// Render Bilingual Report in UI
+function renderBilingualReport(ass, ai) {
+    // 1. ENGLISH REPORT
+    document.getElementById('repPlotNameEn').textContent = ass.farm_details.plot_name;
+    document.getElementById('repLocationEn').textContent = `${ass.farm_details.village}, ${ass.farm_details.district}, ${ass.farm_details.state} (${ass.farm_details.coordinates})`;
+    document.getElementById('repRatingEn').textContent = ass.fertility_index.rating_en;
+    document.getElementById('repScoreEn').textContent = `Fertility Index: ${ass.fertility_index.score}/100`;
+
+    document.getElementById('repCropEn').textContent = ass.crop_context.crop_name_en;
+    document.getElementById('repAreaEn').textContent = `${ass.farm_details.area_acres} Acres (${ass.farm_details.area_hectares} ha)`;
+    document.getElementById('repSoilTypeEn').textContent = ass.farm_details.soil_texture;
+    document.getElementById('repDepthEn').textContent = ass.farm_details.sample_depth;
+    document.getElementById('repDateEn').textContent = ass.farm_details.sample_date;
+    document.getElementById('repSourceEn').textContent = ass.farm_details.data_source;
+
+    // AI Summary
+    document.getElementById('aiSummaryEn').textContent = ai.summary_en || 'Assessment generated based on ICAR standards.';
+
+    // Nutrient badges helper
+    const setNutrient = (valId, badgeId, reasonId, item, isPh = false) => {
+        if (!item) return;
+        const valEl = document.getElementById(valId);
+        const badgeEl = document.getElementById(badgeId);
+        const reasonEl = document.getElementById(reasonId);
+
+        valEl.textContent = isPh ? item.ph_value : `${item.value_kg_ha || item.value} ${item.raw_unit || item.unit}`;
+        badgeEl.textContent = item.classification;
+
+        if (item.classification === 'Low' || item.classification.includes('Acidic') || item.classification.includes('Sodic')) {
+            badgeEl.className = 'badge bg-danger rounded-pill px-2 py-1 mb-2';
+        } else if (item.classification === 'Medium' || item.classification.includes('Neutral') || item.classification === 'Sufficient') {
+            badgeEl.className = 'badge bg-success rounded-pill px-2 py-1 mb-2';
+        } else {
+            badgeEl.className = 'badge bg-primary rounded-pill px-2 py-1 mb-2';
+        }
+
+        reasonEl.textContent = item.reason_en || item.description_en || '';
+    };
+
+    setNutrient('valNEn', 'badgeNEn', 'reasonNEn', ass.nutrients.n);
+    setNutrient('valPEn', 'badgePEn', 'reasonPEn', ass.nutrients.p);
+    setNutrient('valKEn', 'badgeKEn', 'reasonKEn', ass.nutrients.k);
+    setNutrient('valPhEn', 'badgePhEn', 'reasonPhEn', ass.soil_reaction, true);
+
+    // Optional Nutrients Grid
+    const optGridEn = document.getElementById('optionalNutrientsGridEn');
+    optGridEn.innerHTML = '';
+    let hasOpt = false;
+    ['ec', 'oc', 's', 'zn', 'fe', 'b', 'cu', 'mn'].forEach(key => {
+        if (ass.nutrients[key]) {
+            hasOpt = true;
+            const nut = ass.nutrients[key];
+            const col = document.createElement('div');
+            col.className = 'col-sm-6 col-md-3';
+            col.innerHTML = `
+                <div class="p-2 bg-light rounded-3 border text-center">
+                    <small class="d-block text-muted">${nut.name_en}</small>
+                    <strong class="d-block text-dark">${nut.value} ${nut.unit}</strong>
+                    <span class="badge ${nut.classification === 'Deficient' ? 'bg-danger' : 'bg-success'} rounded-pill" style="font-size: 0.65rem;">
+                        ${nut.classification}
+                    </span>
+                </div>
+            `;
+            optGridEn.appendChild(col);
+        }
+    });
+    if (hasOpt) document.getElementById('optionalNutrientsSecEn').classList.remove('d-none');
+
+    // Fertilizer Table EN
+    const fertTbodyEn = document.getElementById('fertilizerTableEn');
+    fertTbodyEn.innerHTML = '';
+    ass.fertilizer_recommendations.commercial_products_per_acre.forEach(p => {
+        const total = Math.round(p.quantity_kg * ass.farm_details.area_acres);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${p.product_en}</strong></td>
+            <td>${p.quantity_kg} kg/acre <br><span class="text-muted" style="font-size:0.75rem;">(${p.bags})</span></td>
+            <td><strong>${total} kg</strong> for ${ass.farm_details.area_acres} acres</td>
+            <td>${p.stage_en}</td>
+        `;
+        fertTbodyEn.appendChild(row);
+    });
+
+    // Amendments EN
+    const amdListEn = document.getElementById('amendmentsListEn');
+    amdListEn.innerHTML = '';
+    if (ass.soil_amendments && ass.soil_amendments.length > 0) {
+        ass.soil_amendments.forEach(a => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${a.amendment_en}:</strong> ${a.dosage_acre} (${a.application_timing_en})`;
+            amdListEn.appendChild(li);
+        });
+        document.getElementById('amendmentsSecEn').classList.remove('d-none');
+    } else {
+        document.getElementById('amendmentsSecEn').classList.add('d-none');
+    }
+
+    // Next Steps EN
+    const stepsEn = document.getElementById('nextStepsListEn');
+    stepsEn.innerHTML = '';
+    ass.practical_next_steps.en.forEach(step => {
+        const li = document.createElement('li');
+        li.className = 'mb-1';
+        li.textContent = step;
+        stepsEn.appendChild(li);
+    });
+
+    // FAQs EN
+    const faqsEn = document.getElementById('faqsListEn');
+    faqsEn.innerHTML = '';
+    if (ai.faqs && ai.faqs.length > 0) {
+        ai.faqs.forEach(f => {
+            const item = document.createElement('div');
+            item.className = 'mb-2 p-2 bg-white rounded-3 border';
+            item.innerHTML = `<strong><i class="fas fa-question text-info me-1"></i> ${f.q_en}</strong><p class="text-muted mb-0 mt-1">${f.a_en}</p>`;
+            faqsEn.appendChild(item);
+        });
+    }
+
+    // 2. HINDI REPORT
+    document.getElementById('repPlotNameHi').textContent = ass.farm_details.plot_name;
+    document.getElementById('repLocationHi').textContent = `${ass.farm_details.village}, ${ass.farm_details.district}, ${ass.farm_details.state}`;
+    document.getElementById('repRatingHi').textContent = ass.fertility_index.rating_hi;
+    document.getElementById('repScoreHi').textContent = `उर्वरता स्कोर: ${ass.fertility_index.score}/100`;
+
+    document.getElementById('repCropHi').textContent = ass.crop_context.crop_name_hi;
+    document.getElementById('repAreaHi').textContent = `${ass.farm_details.area_acres} एकड़ (${ass.farm_details.area_hectares} हेक्टेयर)`;
+    document.getElementById('repSoilTypeHi').textContent = ass.farm_details.soil_texture;
+    document.getElementById('repDepthHi').textContent = ass.farm_details.sample_depth;
+    document.getElementById('repDateHi').textContent = ass.farm_details.sample_date;
+    document.getElementById('repSourceHi').textContent = ass.farm_details.data_source;
+
+    // AI Summary HI
+    document.getElementById('aiSummaryHi').textContent = ai.summary_hi || 'आईसीएआर वैज्ञानिक मानकों के अनुसार गणना की गई।';
+
+    // Nutrient badges helper HI
+    const setNutrientHi = (valId, badgeId, reasonId, item, isPh = false) => {
+        if (!item) return;
+        const valEl = document.getElementById(valId);
+        const badgeEl = document.getElementById(badgeId);
+        const reasonEl = document.getElementById(reasonId);
+
+        valEl.textContent = isPh ? item.ph_value : `${item.value_kg_ha || item.value} ${item.raw_unit || item.unit}`;
+        badgeEl.textContent = item.classification === 'Low' ? 'कम (Low)' : (item.classification === 'Medium' ? 'मध्यम (Medium)' : 'उच्च (High)');
+
+        if (item.classification === 'Low' || item.classification.includes('Acidic') || item.classification.includes('Sodic')) {
+            badgeEl.className = 'badge bg-danger rounded-pill px-2 py-1 mb-2';
+        } else if (item.classification === 'Medium' || item.classification.includes('Neutral') || item.classification === 'Sufficient') {
+            badgeEl.className = 'badge bg-success rounded-pill px-2 py-1 mb-2';
+        } else {
+            badgeEl.className = 'badge bg-primary rounded-pill px-2 py-1 mb-2';
+        }
+
+        reasonEl.textContent = item.reason_hi || item.description_hi || '';
+    };
+
+    setNutrientHi('valNHi', 'badgeNHi', 'reasonNHi', ass.nutrients.n);
+    setNutrientHi('valPHi', 'badgePHi', 'reasonPHi', ass.nutrients.p);
+    setNutrientHi('valKHi', 'badgeKHi', 'reasonKHi', ass.nutrients.k);
+    setNutrientHi('valPhHi', 'badgePhHi', 'reasonPhHi', ass.soil_reaction, true);
+
+    // Optional Nutrients Grid HI
+    const optGridHi = document.getElementById('optionalNutrientsGridHi');
+    optGridHi.innerHTML = '';
+    ['ec', 'oc', 's', 'zn', 'fe', 'b', 'cu', 'mn'].forEach(key => {
+        if (ass.nutrients[key]) {
+            const nut = ass.nutrients[key];
+            const col = document.createElement('div');
+            col.className = 'col-sm-6 col-md-3';
+            col.innerHTML = `
+                <div class="p-2 bg-light rounded-3 border text-center">
+                    <small class="d-block text-muted">${nut.name_hi}</small>
+                    <strong class="d-block text-dark">${nut.value} ${nut.unit}</strong>
+                    <span class="badge ${nut.classification === 'Deficient' ? 'bg-danger' : 'bg-success'} rounded-pill" style="font-size: 0.65rem;">
+                        ${nut.classification === 'Deficient' ? 'कमी (Deficient)' : 'पर्याप्त (Sufficient)'}
+                    </span>
+                </div>
+            `;
+            optGridHi.appendChild(col);
+        }
+    });
+    if (hasOpt) document.getElementById('optionalNutrientsSecHi').classList.remove('d-none');
+
+    // Fertilizer Table HI
+    const fertTbodyHi = document.getElementById('fertilizerTableHi');
+    fertTbodyHi.innerHTML = '';
+    ass.fertilizer_recommendations.commercial_products_per_acre.forEach(p => {
+        const total = Math.round(p.quantity_kg * ass.farm_details.area_acres);
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><strong>${p.product_hi}</strong></td>
+            <td>${p.quantity_kg} किग्रा/एकड़</td>
+            <td><strong>${total} किग्रा</strong> (${ass.farm_details.area_acres} एकड़)</td>
+            <td>${p.stage_hi}</td>
+        `;
+        fertTbodyHi.appendChild(row);
+    });
+
+    // Amendments HI
+    const amdListHi = document.getElementById('amendmentsListHi');
+    amdListHi.innerHTML = '';
+    if (ass.soil_amendments && ass.soil_amendments.length > 0) {
+        ass.soil_amendments.forEach(a => {
+            const li = document.createElement('li');
+            li.innerHTML = `<strong>${a.amendment_hi}:</strong> ${a.dosage_acre} (${a.application_timing_hi})`;
+            amdListHi.appendChild(li);
+        });
+        document.getElementById('amendmentsSecHi').classList.remove('d-none');
+    } else {
+        document.getElementById('amendmentsSecHi').classList.add('d-none');
+    }
+
+    // Next Steps HI
+    const stepsHi = document.getElementById('nextStepsListHi');
+    stepsHi.innerHTML = '';
+    ass.practical_next_steps.hi.forEach(step => {
+        const li = document.createElement('li');
+        li.className = 'mb-1';
+        li.textContent = step;
+        stepsHi.appendChild(li);
+    });
+
+    // FAQs HI
+    const faqsHi = document.getElementById('faqsListHi');
+    faqsHi.innerHTML = '';
+    if (ai.faqs && ai.faqs.length > 0) {
+        ai.faqs.forEach(f => {
+            const item = document.createElement('div');
+            item.className = 'mb-2 p-2 bg-white rounded-3 border';
+            item.innerHTML = `<strong><i class="fas fa-question text-info me-1"></i> ${f.q_hi}</strong><p class="text-muted mb-0 mt-1">${f.a_hi}</p>`;
+            faqsHi.appendChild(item);
+        });
+    }
+
+    // Scroll smoothly to report
+    document.getElementById('reportContainer').scrollIntoView({ behavior: 'smooth' });
+}
+
+// History load button
+document.querySelectorAll('.loadHistoryBtn').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+        const recId = e.currentTarget.dataset.id;
+        try {
+            const res = await fetch(`/api/soil/record/${recId}`);
+            const data = await res.json();
+            if (data.success && data.record && data.record.analysis) {
+                renderBilingualReport(data.record.analysis.assessment, data.record.analysis.ai_explanation);
+                document.getElementById('reportPlaceholder').classList.add('d-none');
+                document.getElementById('reportContainer').classList.remove('d-none');
+            }
+        } catch (err) {
+            alert('Could not load history record: ' + err.message);
+        }
+    });
+});
+
+// Copy Summary
+document.getElementById('copySummaryBtn').addEventListener('click', () => {
+    const textEn = document.getElementById('aiSummaryEn').textContent;
+    const textHi = document.getElementById('aiSummaryHi').textContent;
+    navigator.clipboard.writeText(`[AgroHaat Soil Health Card Report]\nEN: ${textEn}\nHI: ${textHi}`);
+    alert('Report summary copied to clipboard!');
+});
+</script>
+
+<style>
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .printable-report, .printable-report * {
+        visibility: visible;
+    }
+    .printable-report {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    .navbar-farmer-wrapper, #detectGpsBtn, .btn, #langTabs {
+        display: none !important;
+    }
+}
+</style>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,673 @@
+<link rel="stylesheet" href="/public/css/chatbot.css">
+
+<div id="haat-chatbot">
+    <!-- Floating Launcher Button -->
+    <button id="chatbot-toggle" title="AgroHaat AI Voice Assistant (कृषि मित्र)">
+        <i class="fas fa-microphone"></i>
+        <span class="chatbot-toggle-badge"><i class="fas fa-sparkles"></i> AI</span>
+    </button>
+
+    <!-- Voice Assistant Window -->
+    <div id="chatbot-window">
+        <!-- Header -->
+        <div id="chatbot-header">
+            <div class="d-flex align-items-center">
+                <div class="assistant-avatar-wrap">
+                    <i class="fas fa-robot text-white"></i>
+                    <span class="avatar-online-dot"></span>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0 text-white" style="font-size: 0.95rem;">AgroHaat AI Assistant</h6>
+                    <small class="opacity-90" style="font-size: 0.72rem;">🇮🇳 भाषिणी • Bhashini Multilingual Voice AI</small>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <!-- Language Selector -->
+                <select id="chatbot-lang-select" class="lang-select-pill" title="Select Conversation Language">
+                    <option value="auto">🌐 Auto-Detect</option>
+                    <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                    <option value="hinglish">🌾 Hinglish</option>
+                    <option value="en">🇬🇧 English</option>
+                    <option value="pa">🇮🇳 ਪੰਜਾਬੀ (Punjabi)</option>
+                    <option value="bn">🇮🇳 বাংলা (Bengali)</option>
+                    <option value="mr">🇮🇳 मराठी (Marathi)</option>
+                    <option value="gu">🇮🇳 ગુજરાતી (Gujarati)</option>
+                    <option value="ta">🇮🇳 தமிழ் (Tamil)</option>
+                    <option value="te">🇮🇳 తెలుగు (Telugu)</option>
+                    <option value="kn">🇮🇳 ಕನ್ನಡ (Kannada)</option>
+                    <option value="ml">🇮🇳 മലയാളം (Malayalam)</option>
+                    <option value="or">🇮🇳 ଓଡ଼ିଆ (Odia)</option>
+                </select>
+
+                <!-- Voice Audio Mute/Unmute Toggle -->
+                <button type="button" class="header-icon-btn" id="chatbot-mute-toggle" title="Mute/Unmute Voice Answers">
+                    <i class="fas fa-volume-up"></i>
+                </button>
+
+                <!-- Stop Speaking Button (Shown when speaking) -->
+                <button type="button" class="header-icon-btn d-none active-speaking" id="chatbot-stop-speech" title="Stop Speaking">
+                    <i class="fas fa-stop"></i>
+                </button>
+
+                <!-- Reset Memory -->
+                <button type="button" class="header-icon-btn" id="chatbot-reset-session" title="Reset Conversation Memory">
+                    <i class="fas fa-redo-alt" style="font-size: 0.75rem;"></i>
+                </button>
+
+                <!-- Close -->
+                <button type="button" class="header-icon-btn" id="chatbot-close" title="Close Window">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Voice & System State Banner -->
+        <div id="voice-state-banner">
+            <span id="voice-state-text"><i class="fas fa-check-circle text-success me-1"></i> Ready (पूछने के लिए तैयार)</span>
+            <div class="sound-wave-equalizer d-none" id="voice-equalizer">
+                <span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <!-- Live Realtime Transcript Bar -->
+        <div id="live-speech-transcript">
+            <i class="fas fa-microphone-alt me-1 text-danger"></i> <span id="transcript-live-text">Listening...</span>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chatbot-messages">
+            <div class="chat-msg bot">
+                <strong>नमस्ते किसान साथी! 🙏</strong><br>
+                मैं एग्रो-हाट का <strong>बहुभाषी AI वॉइस असिस्टेंट</strong> हूँ। आप मुझसे बोलकर या लिखकर पूछ सकते हैं:<br>
+                <div class="mt-2 small text-muted">
+                    • <strong>मंडी भाव:</strong> <em>"वाराणसी में आज गेहूं का क्या भाव है?"</em><br>
+                    • <strong>मौसम सलाह:</strong> <em>"कल लखनऊ में बारिश होगी क्या?"</em><br>
+                    • <strong>फसल चयन:</strong> <em>"रबी में कौन सी फसल लगाएं?"</em><br>
+                    • <strong>कीट व रोग:</strong> <em>"टमाटर में इल्ली का क्या इलाज है?"</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Prompts Bar -->
+        <div class="quick-prompts-bar">
+            <button type="button" class="quick-prompt-chip" data-prompt="वाराणसी में गेहूं का भाव क्या है?">🌾 गेहूं भाव</button>
+            <button type="button" class="quick-prompt-chip" data-prompt="लखनऊ का आज का मौसम कैसा है?">🌦️ मौसम रिपोर्ट</button>
+            <button type="button" class="quick-prompt-chip" data-prompt="टमाटर में कीड़े का इलाज क्या है?">🪲 टमाटर कीट सलाह</button>
+            <button type="button" class="quick-prompt-chip" data-prompt="मिट्टी की जांच और एनपीके कैसे समझें?">🧪 मृदा पोषक सलाह</button>
+        </div>
+
+        <!-- Input Area -->
+        <div id="chatbot-input-area">
+            <!-- Dedicated Microphone Button -->
+            <button type="button" id="chatbot-mic" title="बोलने के लिए दबाएं (Tap to Speak)">
+                <i class="fas fa-microphone"></i>
+            </button>
+
+            <!-- Text Input -->
+            <input type="text" id="chatbot-input" placeholder="बोलें या टाइप करें... (Speak or type)">
+
+            <!-- Send Button -->
+            <button type="button" id="chatbot-send" title="Send Question">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Audio player element for fallback TTS audio streaming -->
+<audio id="chatbot-audio-player" class="d-none"></audio>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('chatbot-toggle');
+    const close = document.getElementById('chatbot-close');
+    const chatbotWin = document.getElementById('chatbot-window');
+    const input = document.getElementById('chatbot-input');
+    const send = document.getElementById('chatbot-send');
+    const mic = document.getElementById('chatbot-mic');
+    const messages = document.getElementById('chatbot-messages');
+    const stateBanner = document.getElementById('voice-state-banner');
+    const stateText = document.getElementById('voice-state-text');
+    const equalizer = document.getElementById('voice-equalizer');
+    const liveTranscript = document.getElementById('live-speech-transcript');
+    const transcriptLiveText = document.getElementById('transcript-live-text');
+    const langSelect = document.getElementById('chatbot-lang-select');
+    const muteToggle = document.getElementById('chatbot-mute-toggle');
+    const stopSpeechBtn = document.getElementById('chatbot-stop-speech');
+    const resetBtn = document.getElementById('chatbot-reset-session');
+    const audioPlayer = document.getElementById('chatbot-audio-player');
+
+    // Voice State variables
+    let isVoiceMuted = false;
+    let isRecording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let speechRecognition = null;
+    let activeSpeechUtterance = null;
+
+    // Toggle chat window
+    if (toggle) {
+        toggle.onclick = () => {
+            chatbotWin.classList.toggle('active');
+            if (chatbotWin.classList.contains('active')) {
+                input.focus();
+            } else {
+                stopAnySpeech();
+            }
+        };
+    }
+    if (close) {
+        close.onclick = () => {
+            chatbotWin.classList.remove('active');
+            stopAnySpeech();
+        };
+    }
+
+    // Voice State Visualizer
+    function setState(state, message) {
+        stateBanner.className = '';
+        equalizer.classList.add('d-none');
+        stopSpeechBtn.classList.add('d-none');
+
+        if (state === 'listening') {
+            stateBanner.className = 'state-listening';
+            stateText.innerHTML = '<i class="fas fa-microphone text-danger me-1"></i> ' + (message || 'Listening... (बोलिए, हम सुन रहे हैं)');
+            equalizer.classList.remove('d-none');
+            liveTranscript.classList.add('active');
+        } else if (state === 'thinking') {
+            stateBanner.className = 'state-thinking';
+            stateText.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> ' + (message || 'Thinking... (कृषि डेटा से जोड़ रहे हैं)');
+            liveTranscript.classList.remove('active');
+        } else if (state === 'speaking') {
+            stateBanner.className = 'state-speaking';
+            stateText.innerHTML = '<i class="fas fa-volume-up text-primary me-1"></i> ' + (message || 'Speaking... (उत्तर सुना रहे हैं)');
+            equalizer.classList.remove('d-none');
+            stopSpeechBtn.classList.remove('d-none');
+            liveTranscript.classList.remove('active');
+        } else {
+            stateText.innerHTML = '<i class="fas fa-check-circle text-success me-1"></i> ' + (message || 'Ready (पूछने के लिए तैयार)');
+            liveTranscript.classList.remove('active');
+        }
+    }
+
+    // Stop speaking immediately
+    function stopAnySpeech() {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+        if (audioPlayer) {
+            audioPlayer.pause();
+            audioPlayer.currentTime = 0;
+        }
+        setState('ready');
+    }
+
+    if (stopSpeechBtn) {
+        stopSpeechBtn.onclick = () => stopAnySpeech();
+    }
+
+    // Mute/Unmute Spoken Answers Toggle
+    if (muteToggle) {
+        muteToggle.onclick = () => {
+            isVoiceMuted = !isVoiceMuted;
+            if (isVoiceMuted) {
+                stopAnySpeech();
+                muteToggle.innerHTML = '<i class="fas fa-volume-mute text-danger"></i>';
+                muteToggle.title = 'Voice Output Muted (Click to Unmute)';
+            } else {
+                muteToggle.innerHTML = '<i class="fas fa-volume-up"></i>';
+                muteToggle.title = 'Voice Output Active (Click to Mute)';
+            }
+        };
+    }
+
+    // Reset Conversation Memory
+    if (resetBtn) {
+        resetBtn.onclick = async () => {
+            stopAnySpeech();
+            try {
+                await fetch('/api/voice/clear_session', { method: 'POST' });
+            } catch (e) {}
+            messages.innerHTML = `
+                <div class="chat-msg bot">
+                    <strong>बातचीत रीसेट हो गई है! 🔄</strong><br>
+                    आपकी पिछली बातचीत का संदर्भ साफ़ कर दिया गया है। नया प्रश्न पूछें।
+                </div>
+            `;
+            setState('ready');
+        };
+    }
+
+    // Format Markdown Text to HTML
+    function formatMarkdown(text) {
+        if (!text) return '';
+        let escaped = text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+
+        // Bold
+        escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        // Italic
+        escaped = escaped.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        // Bullet lists
+        escaped = escaped.replace(/^[•\-\*]\s+(.*)$/gm, '<li>$1</li>');
+        escaped = escaped.replace(/(<li>.*<\/li>)/gs, '<ul class="mb-1 ps-3">$1</ul>');
+        // Linebreaks
+        escaped = escaped.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+        return escaped;
+    }
+
+    // Add message to chat display
+    function appendMessage(text, sender, sources = [], spokenText = '', lang = 'hi') {
+        const div = document.createElement('div');
+        div.className = `chat-msg ${sender} animate-fade-in-up`;
+
+        if (sender === 'user') {
+            div.textContent = text;
+        } else {
+            div.innerHTML = formatMarkdown(text);
+
+            // Add source attribution, language badge, and speech replay button
+            const footer = document.createElement('div');
+            footer.className = 'chat-msg-footer';
+
+            const langLabels = {
+                hi: 'हिन्दी', hinglish: 'Hinglish', en: 'English', pa: 'ਪੰਜਾਬੀ',
+                bn: 'বাংলা', mr: 'मराठी', gu: 'ગુજરાતી', ta: 'தமிழ்',
+                te: 'తెలుగు', kn: 'ಕನ್ನಡ', ml: 'മലയാളം', or: 'ଓଡ଼ିଆ'
+            };
+            const langBadge = lang && langLabels[lang] ? `<span class="badge bg-light text-dark me-1" style="font-size:0.65rem; border:1px solid #ddd;">${langLabels[lang]}</span>` : '';
+
+            const srcText = sources && sources.length > 0
+                ? `<span title="Verified Agricultural Data Source"><i class="fas fa-shield-alt text-success me-1"></i>${sources[0]}</span>`
+                : '<span><i class="fas fa-flag-checkered text-success me-1"></i>Bhashini AI</span>';
+
+            footer.innerHTML = `
+                <div>${langBadge}${srcText}</div>
+                <button type="button" class="bot-action-btn replay-speech-btn" title="Replay voice audio">
+                    <i class="fas fa-volume-up me-1"></i> Speak
+                </button>
+            `;
+
+            footer.querySelector('.replay-speech-btn').onclick = () => {
+                speakText(spokenText || text, lang);
+            };
+
+            div.appendChild(footer);
+        }
+
+        messages.appendChild(div);
+        messages.scrollTop = messages.scrollHeight;
+    }
+
+    // Text-to-Speech Engine (Web Speech API + Backend Bhashini/Indic Stream Fallback)
+    function speakText(text, lang = 'hi') {
+        if (isVoiceMuted || !text) return;
+        stopAnySpeech();
+
+        setState('speaking');
+
+        const cleanText = text.replace(/[*#_`]/g, '').trim();
+
+        const langMap = {
+            hi: 'hi-IN', hinglish: 'hi-IN', en: 'en-IN', pa: 'pa-IN',
+            bn: 'bn-IN', mr: 'mr-IN', gu: 'gu-IN', ta: 'ta-IN',
+            te: 'te-IN', kn: 'kn-IN', ml: 'ml-IN', or: 'or-IN'
+        };
+        const targetBcp = langMap[lang] || 'hi-IN';
+
+        // Check for browser speech synthesis support
+        if ('speechSynthesis' in window) {
+            const utterance = new SpeechSynthesisUtterance(cleanText);
+            activeSpeechUtterance = utterance;
+            utterance.lang = targetBcp;
+
+            const voices = window.speechSynthesis.getVoices();
+            const matchedVoice = voices.find(v => v.lang.toLowerCase() === targetBcp.toLowerCase() || v.lang.toLowerCase().startsWith(lang));
+            if (matchedVoice) {
+                utterance.voice = matchedVoice;
+            } else if (lang === 'hi' || lang === 'hinglish') {
+                const hiVoice = voices.find(v => v.lang.includes('hi') || v.name.includes('Hindi') || v.name.includes('India'));
+                if (hiVoice) utterance.voice = hiVoice;
+            }
+
+            utterance.rate = 0.95; // Steady pace for rural agricultural clarity
+
+            utterance.onend = () => {
+                setState('ready');
+            };
+
+            utterance.onerror = (e) => {
+                console.warn('SpeechSynthesis error, falling back to server audio:', e);
+                playServerAudio(cleanText, lang);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        } else {
+            playServerAudio(cleanText, lang);
+        }
+    }
+
+    // Play server synthesized MP3 audio stream
+    function playServerAudio(text, lang) {
+        if (!audioPlayer) {
+            setState('ready');
+            return;
+        }
+
+        const url = `/api/voice/speak?lang=${encodeURIComponent(lang)}&text=${encodeURIComponent(text.slice(0, 300))}`;
+        audioPlayer.src = url;
+        audioPlayer.onended = () => setState('ready');
+        audioPlayer.onerror = () => setState('ready');
+        audioPlayer.play().catch(e => {
+            console.warn('Audio play prevented:', e);
+            setState('ready');
+        });
+    }
+
+    // Send query to unified voice & text assistant endpoint
+    async function sendQuery(queryText) {
+        if (!queryText || !queryText.trim()) return;
+        stopAnySpeech();
+
+        appendMessage(queryText, 'user');
+        input.value = '';
+        setState('thinking');
+
+        // Loading bubble
+        const typing = document.createElement('div');
+        typing.className = 'chat-msg bot typing';
+        typing.innerHTML = '<div class="dot"></div><div class="dot"></div><div class="dot"></div>';
+        messages.appendChild(typing);
+        messages.scrollTop = messages.scrollHeight;
+
+        try {
+            const selectedLang = langSelect.value;
+            const res = await fetch('/api/voice/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: queryText,
+                    language: selectedLang
+                })
+            });
+
+            typing.remove();
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Server error occurred');
+            }
+
+            const data = await res.json();
+            appendMessage(data.text_response, 'bot', data.data_sources, data.spoken_response, data.detected_language);
+
+            // Automatically speak response if not muted
+            if (!isVoiceMuted && data.spoken_response) {
+                speakText(data.spoken_response, data.detected_language);
+            } else {
+                setState('ready');
+            }
+
+        } catch (err) {
+            typing.remove();
+            appendMessage(`माफ़ कीजिए, कनेक्शन में समस्या आई है। कृपया पुनः प्रयास करें। (${err.message})`, 'bot');
+            setState('ready');
+        }
+    }
+
+    // Trigger on send button & enter key
+    if (send) {
+        send.onclick = () => {
+            const q = input.value.trim();
+            if (q) sendQuery(q);
+        };
+    }
+    if (input) {
+        input.onkeypress = (e) => {
+            if (e.key === 'Enter') send.click();
+        };
+    }
+
+    // Quick prompt chip clicks
+    document.querySelectorAll('.quick-prompt-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+            const prompt = chip.getAttribute('data-prompt');
+            if (prompt) sendQuery(prompt);
+        });
+    });
+
+    // =========================================================================
+    // HIGH-CLARITY MULTILINGUAL VOICE ENGINE (NOISE REDUCTION & HYBRID STT)
+    // =========================================================================
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let silenceTimer = null;
+    let recognizedFinalTranscript = '';
+    let audioContext = null;
+    let audioAnalyser = null;
+    let animFrameId = null;
+
+    // Start Voice Recording with Enhanced Noise Suppression
+    async function startVoiceRecording() {
+        stopAnySpeech();
+        recognizedFinalTranscript = '';
+        audioChunks = [];
+
+        try {
+            // Enhanced agricultural audio constraints (removes fan, tractor, and room background noise)
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                    channelCount: 1,
+                    sampleRate: 16000
+                }
+            });
+
+            // Setup real-time voice activity analyzer
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) {
+                    audioContext = new AudioCtx();
+                    const source = audioContext.createMediaStreamSource(stream);
+                    audioAnalyser = audioContext.createAnalyser();
+                    audioAnalyser.fftSize = 256;
+                    source.connect(audioAnalyser);
+
+                    const dataArray = new Uint8Array(audioAnalyser.frequencyBinCount);
+                    function checkAudioLevel() {
+                        if (!isRecording) return;
+                        audioAnalyser.getByteFrequencyData(dataArray);
+                        let sum = 0;
+                        for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+                        const avg = sum / dataArray.length;
+
+                        // Visual feedback: animate mic scale with voice volume
+                        if (avg > 15) {
+                            const scale = Math.min(1.3, 1 + (avg / 150));
+                            mic.style.transform = `scale(${scale})`;
+                        } else {
+                            mic.style.transform = 'scale(1)';
+                        }
+                        animFrameId = requestAnimationFrame(checkAudioLevel);
+                    }
+                    animFrameId = requestAnimationFrame(checkAudioLevel);
+                }
+            } catch (ctxErr) {
+                console.warn('AudioContext visualization notice:', ctxErr);
+            }
+
+            // Setup MediaRecorder for backend Whisper fallback
+            let mimeType = 'audio/webm';
+            if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+                else if (MediaRecorder.isTypeSupported('audio/ogg')) mimeType = 'audio/ogg';
+                else mimeType = '';
+            }
+
+            mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    audioChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                if (animFrameId) cancelAnimationFrame(animFrameId);
+                if (audioContext && audioContext.state !== 'closed') {
+                    audioContext.close().catch(() => {});
+                }
+                stream.getTracks().forEach(track => track.stop());
+                mic.style.transform = 'scale(1)';
+
+                // If client SpeechRecognition already captured words, send directly
+                if (recognizedFinalTranscript && recognizedFinalTranscript.trim().length > 1) {
+                    sendQuery(recognizedFinalTranscript.trim());
+                    return;
+                }
+
+                // Otherwise, transcribe with backend Groq Whisper
+                setState('thinking', 'AI Whisper से आवाज़ समझ रहे हैं...');
+                const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                await sendAudioForTranscription(audioBlob);
+            };
+
+            // Start SpeechRecognition for instant, crystal-clear recognition
+            if (SpeechRecognition) {
+                speechRecognition = new SpeechRecognition();
+                speechRecognition.continuous = true;
+                speechRecognition.interimResults = true;
+
+                // Configure target language
+                const selectedLang = langSelect.value;
+                const recognitionLangMap = {
+                    en: 'en-IN', hi: 'hi-IN', hinglish: 'hi-IN', pa: 'pa-IN',
+                    bn: 'bn-IN', mr: 'mr-IN', gu: 'gu-IN', ta: 'ta-IN',
+                    te: 'te-IN', kn: 'kn-IN', ml: 'ml-IN', or: 'or-IN'
+                };
+                speechRecognition.lang = recognitionLangMap[selectedLang] || 'hi-IN';
+
+                speechRecognition.onresult = (event) => {
+                    let interimText = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            recognizedFinalTranscript += ' ' + transcript;
+                        } else {
+                            interimText += transcript;
+                        }
+                    }
+
+                    const liveCombined = (recognizedFinalTranscript + ' ' + interimText).trim();
+                    if (liveCombined) {
+                        transcriptLiveText.textContent = liveCombined;
+                        input.value = liveCombined;
+
+                        // Auto-silence submit: submit 1.4 seconds after user pauses
+                        clearTimeout(silenceTimer);
+                        silenceTimer = setTimeout(() => {
+                            if (isRecording && recognizedFinalTranscript.trim().length > 1) {
+                                stopVoiceRecording();
+                            }
+                        }, 1400);
+                    }
+                };
+
+                speechRecognition.onerror = (e) => {
+                    console.warn('SpeechRecognition notice:', e.error);
+                };
+
+                try { speechRecognition.start(); } catch (e) {}
+            }
+
+            mediaRecorder.start(250); // Record chunks every 250ms
+            isRecording = true;
+            mic.classList.add('recording');
+            mic.innerHTML = '<i class="fas fa-stop"></i>';
+            setState('listening', 'बोलिए, सुन रहे हैं... (Listening)');
+            transcriptLiveText.textContent = 'साफ़ आवाज़ में बोलिए... (Speak clearly)';
+
+        } catch (err) {
+            console.error('Microphone error:', err);
+            alert('माइक्रोफ़ोन एक्सेस नहीं हुआ। कृपया ब्राउज़र अनुमति दें। (Microphone access denied. Please grant permission in browser settings.)');
+            setState('ready');
+        }
+    }
+
+    // Stop Voice Recording
+    function stopVoiceRecording() {
+        clearTimeout(silenceTimer);
+        if (isRecording) {
+            isRecording = false;
+            mic.classList.remove('recording');
+            mic.innerHTML = '<i class="fas fa-microphone"></i>';
+
+            if (speechRecognition) {
+                try { speechRecognition.stop(); } catch (e) {}
+            }
+
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
+        }
+    }
+
+    // Toggle Microphone Recording
+    if (mic) {
+        mic.onclick = () => {
+            if (isRecording) {
+                stopVoiceRecording();
+            } else {
+                startVoiceRecording();
+            }
+        };
+    }
+
+    // Send recorded audio blob to backend Whisper STT
+    async function sendAudioForTranscription(audioBlob) {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.webm');
+        formData.append('language', langSelect.value);
+
+        try {
+            const res = await fetch('/api/voice/transcribe', {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success && data.transcript && data.transcript.trim()) {
+                sendQuery(data.transcript.trim());
+            } else {
+                const clientTranscript = input.value.trim() || transcriptLiveText.textContent.trim();
+                if (clientTranscript && !clientTranscript.includes('बोलिए') && !clientTranscript.includes('Listening')) {
+                    sendQuery(clientTranscript);
+                } else {
+                    setState('ready', 'आवाज़ साफ़ सुनाई नहीं दी, कृपया दोबारा बोलें या टाइप करें।');
+                }
+            }
+        } catch (err) {
+            console.error('STT upload error:', err);
+            const clientTranscript = input.value.trim();
+            if (clientTranscript) {
+                sendQuery(clientTranscript);
+            } else {
+                setState('ready', 'माइक की आवाज़ स्पष्ट नहीं थी। कृपया पुनः बोलें।');
+            }
+        }
+    }
+
+    // Pre-load voices for SpeechSynthesis
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = () => {
+            window.speechSynthesis.getVoices();
+        };
+    }
+});
+</script>
