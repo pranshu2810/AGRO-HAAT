@@ -207,8 +207,7 @@ node test/test_crop_recommendation.js
 ## 👥 Developers & Collaborators
 
 - **Pranshu Gupta** — [GitHub (@pranshu2810)](https://github.com/pranshu2810)
-- **Neeraj Sahni** — [GitHub (@Neeraj-Sahni)](https://github.com/Neeraj-Sahni)
-- **Parv** — [GitHub (@parv-byte)](https://github.com/parv-byte)
+
 
 *Department of Computer Science & Engineering*  
 *Noida Institute of Engineering and Technology (NIET), Greater Noida*
