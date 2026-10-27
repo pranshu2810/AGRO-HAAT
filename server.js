@@ -227,6 +227,6 @@ app.get(['/farmer/model_evaluation', '/model_evaluation', '/model-evaluation'], 
 // Market Intelligence and live Mandi Prices are handled by marketRoutes ('/farmer/market_prices')
 
 // Start Node.js express server
-app.listen(PORT, () => {
-  console.log(`Agro-Haat AI Node.js server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Agro-Haat AI server running on port ${PORT}`);
 });
